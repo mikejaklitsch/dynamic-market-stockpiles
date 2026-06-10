@@ -87,7 +87,6 @@ dmsd_slider_demand.1 = {
 				}
 			}
 		}
-		change_global_variable = { name = dmsd_dbg_p1_court add = local_var:dmsd_gold }
 		dmsd_accumulate_court = yes
 	}
 }
@@ -195,30 +194,15 @@ dmsd_slider_demand.4 = {
 	title = hidden_event.t
 	hidden = yes
 	immediate = {
-		set_local_variable = { name = dmsd_dbg_p2_court value = 0 }
 		every_market_in_world = {
 			save_temporary_scope_as = dmsd_mkt
 			location = {
 				add_to_global_variable_list = { name = dmsd_active_locations target = this }
-				if = {
-					limit = { has_variable_map = dmsd_court_map }
-					every_key_in_variable_map = {
-						variable = dmsd_court_map
-						save_temporary_scope_as = dmsd_dbg_key
-						prev = {
-							change_local_variable = { name = dmsd_dbg_p2_court add = "variable_map(dmsd_court_map|scope:dmsd_dbg_key)" }
-						}
-					}
-				}
 				dmsd_apply_court = yes
 				dmsd_apply_diplo = yes
 				dmsd_apply_stab = yes
 				dmsd_apply_culture = yes
 			}
 		}
-		set_local_variable = { name = dbg_p1 value = global_var:dmsd_dbg_p1_court }
-		set_local_variable = { name = dbg_p2 value = local_var:dmsd_dbg_p2_court }
-		error_log = "DMSD VERIFY court P1_total=[SCOPE.GetLocalVariable('dbg_p1').GetValue|2] P2_total=[SCOPE.GetLocalVariable('dbg_p2').GetValue|2]"
-		set_global_variable = { name = dmsd_dbg_p1_court value = 0 }
 	}
 }
