@@ -13,7 +13,7 @@
 #
 # The market maps accumulate across all countries. Because add_to_variable_map
 # silently fails on existing keys, we read-add-write via dmsd_set_variable_map.
-# This is NOT extractable into a generic helper — variable_map() reads fail
+# This is NOT extractable into a generic helper; variable_map() reads fail
 # when the map name is a $parameter$, so the map name must be literal.
 #
 # Context: country scope
@@ -64,7 +64,7 @@ dmsd_accumulate_court = {
 				set_local_variable = { name = dmsd_map_key value = "global_variable_map(dmsd_court_reg1|scope:dmsd_sc)" }
 				if = {
 					limit = { is_key_in_global_variable_map = { name = dmsd_court_reg1 target = scope:dmsd_rg } }
-					# Both regional and religion variants — split gold 50/50
+					# Both regional and religion variants, split gold 50/50
 					set_local_variable = { name = dmsd_half value = { value = local_var:dmsd_share divide = 2 } }
 
 					set_local_variable = { name = dmsd_map_val value = local_var:dmsd_half }
@@ -82,7 +82,7 @@ dmsd_accumulate_court = {
 					}
 					dmsd_set_variable_map = { name = dmsd_court_map key = local_var:dmsd_map_key value = local_var:dmsd_map_val }
 				} else = {
-					# Regional variant only — full share
+					# Regional variant only, full share
 					set_local_variable = { name = dmsd_map_val value = local_var:dmsd_share }
 					if = {
 						limit = { is_key_in_variable_map = { name = dmsd_court_map target = local_var:dmsd_map_key } }
@@ -91,7 +91,7 @@ dmsd_accumulate_court = {
 					dmsd_set_variable_map = { name = dmsd_court_map key = local_var:dmsd_map_key value = local_var:dmsd_map_val }
 				}
 			} else = {
-				# No regional variant for this subcontinent — use base demand
+				# No regional variant for this subcontinent, use base demand
 				set_local_variable = { name = dmsd_map_val value = local_var:dmsd_share }
 				if = {
 					limit = { is_key_in_variable_map = { name = dmsd_court_map target = demand:dmsd_court_demand1 } }
@@ -104,7 +104,7 @@ dmsd_accumulate_court = {
 }
 
 # Diplo, cultural, and stability follow the same structure as court
-# but without the religion split — all gold goes to one regional basket.
+# but without the religion split; all gold goes to one regional basket.
 
 dmsd_accumulate_diplo = {
 	clear_variable_map = dmsd_prox_diplo_io

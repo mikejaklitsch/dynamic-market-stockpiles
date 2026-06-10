@@ -4,18 +4,18 @@
 # Entry points for both the stockpile scaling and slider demand systems.
 #
 # EXECUTION ORDER (within one month):
-#   weather_monthly_pulse fires FIRST (global scope, once):
-#     1. Stockpile scaling — adjusts market capacity modifiers
-#     2. Init check — detects rule disable, version mismatch, or first run;
-#        runs cleanup or full reinit as needed
-#     3. Phase 2 apply — reads LAST month's accumulated maps, applies demands
-#     4. Swap toggle — alternates demand type pair for next month
-#     5. Orphan cleanup — strips demands from locations no longer market centers
+#   monthly_country_pulse fires FIRST (per-country scope):
+#     1. Prox cache rebuild (player only, AI yearly)
+#     2. Phase 1 events (.1-.3, .5) - gold computation + accumulation into
+#        market location maps
 #
-#   monthly_country_pulse fires SECOND (per-country scope):
-#     6. Prox cache rebuild (player only, AI yearly)
-#     7. Phase 1 events (.1-.3, .5) — gold computation + accumulation into
-#        market location maps, read by NEXT month's Phase 2
+#   weather_monthly_pulse fires SECOND (global scope, once):
+#     3. Stockpile scaling - adjusts market capacity modifiers
+#     4. Init check - detects rule disable, version mismatch, or first run;
+#        runs cleanup or full reinit as needed
+#     5. Phase 2 apply - reads this month's accumulated maps, applies demands
+#     6. Swap toggle - alternates demand type pair for next month
+#     7. Orphan cleanup - strips demands from locations no longer market centers
 #
 # GAME RULE GATING:
 #   - Every slider-demand codepath checks has_game_rule = dmsd_slider_demand_disabled

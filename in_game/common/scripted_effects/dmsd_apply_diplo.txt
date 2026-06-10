@@ -1,5 +1,5 @@
 ﻿# Phase 2 diplomatic demand. Gold map keyed by reg1 demand types.
-# Subcontinent only — no religion split.
+# Subcontinent only, no religion split.
 # Runs in location scope with scope:dmsd_mkt available.
 
 dmsd_apply_diplo = {

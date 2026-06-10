@@ -165,7 +165,7 @@ dmsd_tt_market_value = {
 	value = market.total_goods_value_traded
 }
 
-# The reference threshold — markets trading above this are above baseline
+# The reference threshold; markets trading above this are above baseline
 dmsd_tt_threshold = { value = 2500 }
 
 # Market ratio: traded_value / threshold (e.g. 0.19 for a small market)

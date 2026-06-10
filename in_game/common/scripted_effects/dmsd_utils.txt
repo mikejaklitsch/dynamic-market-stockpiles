@@ -17,7 +17,7 @@ dmsd_set_variable_map = {
 #
 # Context: location scope (the proximity source), country is prev.
 # Requires local_var:dmsd_disp_io and local_var:dmsd_share to be set.
-# Params: $slider$ — one of court, diplo, cult, stab. Determines which
+# Params: $slider$ - one of court, diplo, cult, stab. Determines which
 #         set of display maps (dmsd_prox_$slider$_io/gold/scale) to write.
 dmsd_compute_source_scale = {
 	market = { save_temporary_scope_as = dmsd_src_mkt }

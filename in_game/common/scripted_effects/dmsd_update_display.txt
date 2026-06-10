@@ -14,7 +14,7 @@ dmsd_update_player_display = {
 	capital = { sub_continent = { save_temporary_scope_as = dmsd_disp_sc } }
 	religion = { group = { save_temporary_scope_as = dmsd_disp_rg } }
 
-	# Court regional goods — look up variant from registry, then IO, then copy weights
+	# Court regional goods: look up variant from registry, then IO, then copy weights
 	clear_global_variable_map = dmsd_tt_court_goods
 	if = {
 		limit = { is_key_in_global_variable_map = { name = dmsd_court_reg1 target = scope:dmsd_disp_sc } }
@@ -35,7 +35,7 @@ dmsd_update_player_display = {
 		}
 	}
 
-	# Court religion goods — same pattern
+	# Court religion goods: same pattern
 	clear_global_variable_map = dmsd_tt_court_rel_goods
 	if = {
 		limit = { is_key_in_global_variable_map = { name = dmsd_court_reg1 target = scope:dmsd_disp_rg } }

@@ -9,7 +9,7 @@
 # Adjusts market stockpile capacity based on total goods value traded.
 # Markets trading above the 2500 threshold get bonus capacity; below get reduced.
 # Clamped to -95% so capacity never drops below 5% of base.
-# Uses dws_ prefix variables (legacy — persisted in existing saves).
+# Uses dws_ prefix variables (legacy, persisted in existing saves).
 
 dmsd_update_stockpile_scaling = {
 	# Clean up orphaned locations (market center moved)
@@ -121,7 +121,7 @@ dmsd_init_check_effect = {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# STEP 3: PHASE 2 — APPLY ACCUMULATED DEMANDS
+# STEP 3: PHASE 2, APPLY ACCUMULATED DEMANDS
 # ═══════════════════════════════════════════════════════════════════════════════
 # Reads last month's accumulated maps from market locations, converts gold
 # to demand scale, applies temporary demands. Clears maps after reading.

@@ -1,5 +1,5 @@
 ﻿# Stockpile bleed ramps linearly from 0% at empty to 5% at full capacity.
-# Vanilla starts at 50% and maxes at 75% — we scale across the full range
+# Vanilla starts at 50% and maxes at 75%; we scale across the full range
 # so every stockpile level contributes proportionally.
 # Half of this bleed counts toward price-forming supply.
 NMarket = {

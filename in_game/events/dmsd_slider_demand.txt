@@ -12,7 +12,7 @@
 
 # --- Per-slider efficiency decay ---
 # Diminishing returns on heavy spending. Each doubling of raw gold past
-# the baseline costs 25% efficiency. Per-slider, not country-wide — a
+# the baseline costs 25% efficiency. Per-slider, not country-wide, so a
 # large nation spending modestly is unpenalized.
 @dmsd_eff_baseline = 250
 # 0.415 = log(0.75)/log(0.5), the exponent that yields exactly ×0.75 per doubling.
@@ -59,7 +59,7 @@ dmsd_slider_demand.1 = {
 			set_variable = { name = dmsd_disp_court_rel_io value = "global_variable_map(dmsd_demand_io|local_var:dmsd_disp_d)" }
 		}
 
-		# Diplo, stab, cult IO refs — same pattern, different registries
+		# Diplo, stab, cult IO refs: same pattern, different registries
 		if = {
 			limit = { is_key_in_global_variable_map = { name = dmsd_diplo_reg1 target = scope:dmsd_disp_sc } }
 			set_local_variable = { name = dmsd_disp_d value = "global_variable_map(dmsd_diplo_reg1|scope:dmsd_disp_sc)" }
@@ -96,7 +96,7 @@ dmsd_slider_demand.1 = {
 				}
 			}
 		}
-		# Efficiency decay applied to pre-decay gold — see constants above
+		# Efficiency decay applied to pre-decay gold; see constants above
 		change_local_variable = {
 			name = dmsd_gold
 			multiply = {
@@ -140,7 +140,7 @@ dmsd_slider_demand.2 = {
 }
 
 # --- Event .3: Stability spending ---
-# Same structure as court — uses inferred slider because the engine
+# Same structure as court; uses inferred slider because the engine
 # has no stability_maintenance trigger exposed to script.
 dmsd_slider_demand.3 = {
 	type = country_event
@@ -219,7 +219,7 @@ dmsd_slider_demand.5 = {
 			}
 		}
 
-		# Stored for tooltip — can't recompute in a script value without every_artist
+		# Stored for tooltip; can't recompute in a script value without every_artist
 		set_variable = { name = dmsd_cult_raw_gold value = local_var:dmsd_gold }
 
 		change_local_variable = {

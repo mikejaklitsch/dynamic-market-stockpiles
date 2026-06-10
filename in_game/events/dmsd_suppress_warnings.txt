@@ -1,7 +1,7 @@
 ﻿namespace = dmsd_suppress
 
 # Silence "set but never used" warnings for variables read only via GUI.
-# This event is never triggered — orphan = yes tells the engine it's intentional.
+# This event is never triggered; orphan = yes tells the engine it's intentional.
 
 dmsd_suppress.0 = {
 	type = country_event

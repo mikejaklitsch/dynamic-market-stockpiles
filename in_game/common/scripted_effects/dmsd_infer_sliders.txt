@@ -9,11 +9,11 @@
 # known non-slider contributions. Plausibility check rejects event noise.
 #
 # Fallback (at cap): when gov_power or stability is at its cap, deltas are
-# zero and inference fails. Instead compute the equilibrium rate — the slider
+# zero and inference fails. Instead compute the equilibrium rate: the slider
 # only needs to offset whatever drain exists at the cap.
 #
 # Court: max benefit = +2/month, no natural decay.
-#   At cap: effective = min(slider, -monthly_gov_power / 2) — only absorbs drain.
+#   At cap: effective = min(slider, -monthly_gov_power / 2); only absorbs drain.
 # Stability: max benefit = +0.5/month, decays toward zero.
 #   At cap: effective = min(slider, -(stability_investment + decay) / 0.5)
 
@@ -64,7 +64,7 @@ dmsd_infer_court_slider = {
 		}
 	} else_if = {
 		limit = { "government_power" >= @dmsd_gov_power_cap }
-		# At cap: equilibrium — slider offsets any drain on gov power
+		# At cap: equilibrium, slider offsets any drain on gov power
 		set_variable = {
 			name = dmsd_court_slider
 			value = {
@@ -76,7 +76,7 @@ dmsd_infer_court_slider = {
 			}
 		}
 	} else = {
-		# No baseline yet — use raw slider trigger until inference kicks in
+		# No baseline yet; use raw slider trigger until inference kicks in
 		set_variable = { name = dmsd_court_slider value = "court_maintenance" }
 	}
 
@@ -116,7 +116,7 @@ dmsd_infer_stab_slider = {
 		}
 	} else_if = {
 		limit = { "stability" >= @dmsd_gov_power_cap }
-		# At cap: equilibrium — slider offsets decay and non-slider sources
+		# At cap: equilibrium, slider offsets decay and non-slider sources
 		set_local_variable = {
 			name = dmsd_stab_drain
 			value = {

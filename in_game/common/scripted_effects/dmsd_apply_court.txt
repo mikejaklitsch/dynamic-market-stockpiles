@@ -51,7 +51,7 @@ dmsd_apply_court = {
 					}
 				}
 
-				# scale = gold / basket_price — how many "units" of the basket this gold buys
+				# scale = gold / basket_price, i.e. how many "units" of the basket this gold buys
 				set_local_variable = { name = dmsd_gv value = "location.variable_map(dmsd_court_map|scope:dmsd_demand)" }
 				if = {
 					limit = { local_var:dmsd_bp > 0 local_var:dmsd_gv >= 0.01 }
