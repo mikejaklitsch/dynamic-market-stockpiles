@@ -87,28 +87,7 @@ dmsd_slider_demand.1 = {
 				}
 			}
 		}
-		if = {
-			limit = { tag = DLH }
-			set_local_variable = { name = dbg_gold value = local_var:dmsd_gold }
-			set_local_variable = { name = dbg_slider value = 0 }
-			if = {
-				limit = { has_variable = dmsd_court_slider }
-				set_local_variable = { name = dbg_slider value = var:dmsd_court_slider }
-			}
-			set_local_variable = { name = dbg_eco value = "country_economical_base" }
-			set_local_variable = { name = dbg_eff_mod value = "modifier:court_spending_efficiency" }
-			set_local_variable = { name = dbg_eff_div value = { value = 1 add = "modifier:court_spending_efficiency" } }
-			set_local_variable = { name = dbg_decay value = {
-				value = @dmsd_eff_baseline
-				divide = { value = "country_economical_base" min = @dmsd_eff_baseline }
-				pow = @dmsd_eff_exponent
-			} }
-			set_local_variable = { name = dbg_prox_n value = 0 }
-			every_in_list = { variable = dmsd_prox_sources change_local_variable = { name = dbg_prox_n add = 1 } }
-			set_local_variable = { name = dbg_prox_t value = 0 }
-			if = { limit = { has_variable = dmsd_prox_total } set_local_variable = { name = dbg_prox_t value = var:dmsd_prox_total } }
-			error_log = "DMSD DEL court slider=[SCOPE.GetLocalVariable('dbg_slider').GetValue|4] eco=[SCOPE.GetLocalVariable('dbg_eco').GetValue|0] eff_mod=[SCOPE.GetLocalVariable('dbg_eff_mod').GetValue|4] eff_div=[SCOPE.GetLocalVariable('dbg_eff_div').GetValue|4] decay=[SCOPE.GetLocalVariable('dbg_decay').GetValue|4] gold=[SCOPE.GetLocalVariable('dbg_gold').GetValue|4] prox_n=[SCOPE.GetLocalVariable('dbg_prox_n').GetValue|0] prox_t=[SCOPE.GetLocalVariable('dbg_prox_t').GetValue|4]"
-		}
+		change_global_variable = { name = dmsd_dbg_p1_court add = local_var:dmsd_gold }
 		dmsd_accumulate_court = yes
 	}
 }
@@ -216,15 +195,30 @@ dmsd_slider_demand.4 = {
 	title = hidden_event.t
 	hidden = yes
 	immediate = {
+		set_local_variable = { name = dmsd_dbg_p2_court value = 0 }
 		every_market_in_world = {
 			save_temporary_scope_as = dmsd_mkt
 			location = {
 				add_to_global_variable_list = { name = dmsd_active_locations target = this }
+				if = {
+					limit = { has_variable_map = dmsd_court_map }
+					every_key_in_variable_map = {
+						variable = dmsd_court_map
+						save_temporary_scope_as = dmsd_dbg_key
+						prev = {
+							change_local_variable = { name = dmsd_dbg_p2_court add = "variable_map(dmsd_court_map|scope:dmsd_dbg_key)" }
+						}
+					}
+				}
 				dmsd_apply_court = yes
 				dmsd_apply_diplo = yes
 				dmsd_apply_stab = yes
 				dmsd_apply_culture = yes
 			}
 		}
+		set_local_variable = { name = dbg_p1 value = global_var:dmsd_dbg_p1_court }
+		set_local_variable = { name = dbg_p2 value = local_var:dmsd_dbg_p2_court }
+		error_log = "DMSD VERIFY court P1_total=[SCOPE.GetLocalVariable('dbg_p1').GetValue|2] P2_total=[SCOPE.GetLocalVariable('dbg_p2').GetValue|2]"
+		set_global_variable = { name = dmsd_dbg_p1_court value = 0 }
 	}
 }

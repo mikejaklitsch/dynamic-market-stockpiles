@@ -188,12 +188,6 @@ dmsd_phase2_kickstart = {
 
 dmsd_monthly_pulse = {
 	trigger = { NOT = { has_game_rule = dmsd_slider_demand_disabled } }
-	effect = {
-		if = {
-			limit = { tag = DLH }
-			error_log = "DMSD monthly_pulse fired for DEL"
-		}
-	}
 	events = {
 		dmsd_slider_demand.1
 		dmsd_slider_demand.2

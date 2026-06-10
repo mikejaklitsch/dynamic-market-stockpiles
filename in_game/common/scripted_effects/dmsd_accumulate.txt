@@ -65,12 +65,6 @@ dmsd_accumulate_court = {
 			add_to_variable_map = { name = dmsd_prox_court_io key = scope:dmsd_src value = local_var:dmsd_disp_io }
 			add_to_variable_map = { name = dmsd_prox_court_gold key = scope:dmsd_src value = local_var:dmsd_share }
 			add_to_variable_map = { name = dmsd_prox_court_scale key = scope:dmsd_src value = local_var:dmsd_src_scale }
-			if = {
-				limit = { is_ai = no }
-				set_local_variable = { name = dbg_g value = local_var:dmsd_share }
-				set_local_variable = { name = dbg_s value = local_var:dmsd_src_scale }
-				error_log = "DMSD PROX court gold=[SCOPE.GetLocalVariable('dbg_g').GetValue|4] scale=[SCOPE.GetLocalVariable('dbg_s').GetValue|4]"
-			}
 		}
 
 		market.location = {
@@ -78,16 +72,44 @@ dmsd_accumulate_court = {
 
 			if = {
 				limit = { is_key_in_global_variable_map = { name = dmsd_court_reg1 target = scope:dmsd_sc } }
+				set_local_variable = { name = dmsd_map_key value = "global_variable_map(dmsd_court_reg1|scope:dmsd_sc)" }
 				if = {
 					limit = { is_key_in_global_variable_map = { name = dmsd_court_reg1 target = scope:dmsd_rg } }
 					set_local_variable = { name = dmsd_half value = { value = local_var:dmsd_share divide = 2 } }
-					add_to_variable_map = { name = dmsd_court_map key = "global_variable_map(dmsd_court_reg1|scope:dmsd_sc)" value = local_var:dmsd_half }
-					add_to_variable_map = { name = dmsd_court_map key = "global_variable_map(dmsd_court_reg1|scope:dmsd_rg)" value = local_var:dmsd_half }
+
+					# Accumulate regional half
+					set_local_variable = { name = dmsd_map_val value = local_var:dmsd_half }
+					if = {
+						limit = { is_key_in_variable_map = { name = dmsd_court_map target = local_var:dmsd_map_key } }
+						change_local_variable = { name = dmsd_map_val add = "variable_map(dmsd_court_map|local_var:dmsd_map_key)" }
+					}
+					dmsd_set_variable_map = { name = dmsd_court_map key = local_var:dmsd_map_key value = local_var:dmsd_map_val }
+
+					# Accumulate religion half
+					set_local_variable = { name = dmsd_map_key value = "global_variable_map(dmsd_court_reg1|scope:dmsd_rg)" }
+					set_local_variable = { name = dmsd_map_val value = local_var:dmsd_half }
+					if = {
+						limit = { is_key_in_variable_map = { name = dmsd_court_map target = local_var:dmsd_map_key } }
+						change_local_variable = { name = dmsd_map_val add = "variable_map(dmsd_court_map|local_var:dmsd_map_key)" }
+					}
+					dmsd_set_variable_map = { name = dmsd_court_map key = local_var:dmsd_map_key value = local_var:dmsd_map_val }
 				} else = {
-					add_to_variable_map = { name = dmsd_court_map key = "global_variable_map(dmsd_court_reg1|scope:dmsd_sc)" value = local_var:dmsd_share }
+					# Regional only — full share
+					set_local_variable = { name = dmsd_map_val value = local_var:dmsd_share }
+					if = {
+						limit = { is_key_in_variable_map = { name = dmsd_court_map target = local_var:dmsd_map_key } }
+						change_local_variable = { name = dmsd_map_val add = "variable_map(dmsd_court_map|local_var:dmsd_map_key)" }
+					}
+					dmsd_set_variable_map = { name = dmsd_court_map key = local_var:dmsd_map_key value = local_var:dmsd_map_val }
 				}
 			} else = {
-				add_to_variable_map = { name = dmsd_court_map key = demand:dmsd_court_demand1 value = local_var:dmsd_share }
+				# Fallback — no regional variant
+				set_local_variable = { name = dmsd_map_val value = local_var:dmsd_share }
+				if = {
+					limit = { is_key_in_variable_map = { name = dmsd_court_map target = demand:dmsd_court_demand1 } }
+					change_local_variable = { name = dmsd_map_val add = "variable_map(dmsd_court_map|demand:dmsd_court_demand1)" }
+				}
+				dmsd_set_variable_map = { name = dmsd_court_map key = demand:dmsd_court_demand1 value = local_var:dmsd_map_val }
 			}
 		}
 	}
@@ -148,9 +170,20 @@ dmsd_accumulate_diplo = {
 		market.location = {
 			if = {
 				limit = { is_key_in_global_variable_map = { name = dmsd_diplo_reg1 target = scope:dmsd_sc } }
-				add_to_variable_map = { name = dmsd_diplo_map key = "global_variable_map(dmsd_diplo_reg1|scope:dmsd_sc)" value = local_var:dmsd_share }
+				set_local_variable = { name = dmsd_map_key value = "global_variable_map(dmsd_diplo_reg1|scope:dmsd_sc)" }
+				set_local_variable = { name = dmsd_map_val value = local_var:dmsd_share }
+				if = {
+					limit = { is_key_in_variable_map = { name = dmsd_diplo_map target = local_var:dmsd_map_key } }
+					change_local_variable = { name = dmsd_map_val add = "variable_map(dmsd_diplo_map|local_var:dmsd_map_key)" }
+				}
+				dmsd_set_variable_map = { name = dmsd_diplo_map key = local_var:dmsd_map_key value = local_var:dmsd_map_val }
 			} else = {
-				add_to_variable_map = { name = dmsd_diplo_map key = demand:dmsd_diplomatic_demand1 value = local_var:dmsd_share }
+				set_local_variable = { name = dmsd_map_val value = local_var:dmsd_share }
+				if = {
+					limit = { is_key_in_variable_map = { name = dmsd_diplo_map target = demand:dmsd_diplomatic_demand1 } }
+					change_local_variable = { name = dmsd_map_val add = "variable_map(dmsd_diplo_map|demand:dmsd_diplomatic_demand1)" }
+				}
+				dmsd_set_variable_map = { name = dmsd_diplo_map key = demand:dmsd_diplomatic_demand1 value = local_var:dmsd_map_val }
 			}
 		}
 	}
@@ -211,9 +244,20 @@ dmsd_accumulate_culture = {
 		market.location = {
 			if = {
 				limit = { is_key_in_global_variable_map = { name = dmsd_cult_reg1 target = scope:dmsd_sc } }
-				add_to_variable_map = { name = dmsd_cult_map key = "global_variable_map(dmsd_cult_reg1|scope:dmsd_sc)" value = local_var:dmsd_share }
+				set_local_variable = { name = dmsd_map_key value = "global_variable_map(dmsd_cult_reg1|scope:dmsd_sc)" }
+				set_local_variable = { name = dmsd_map_val value = local_var:dmsd_share }
+				if = {
+					limit = { is_key_in_variable_map = { name = dmsd_cult_map target = local_var:dmsd_map_key } }
+					change_local_variable = { name = dmsd_map_val add = "variable_map(dmsd_cult_map|local_var:dmsd_map_key)" }
+				}
+				dmsd_set_variable_map = { name = dmsd_cult_map key = local_var:dmsd_map_key value = local_var:dmsd_map_val }
 			} else = {
-				add_to_variable_map = { name = dmsd_cult_map key = demand:dmsd_cultural_demand1 value = local_var:dmsd_share }
+				set_local_variable = { name = dmsd_map_val value = local_var:dmsd_share }
+				if = {
+					limit = { is_key_in_variable_map = { name = dmsd_cult_map target = demand:dmsd_cultural_demand1 } }
+					change_local_variable = { name = dmsd_map_val add = "variable_map(dmsd_cult_map|demand:dmsd_cultural_demand1)" }
+				}
+				dmsd_set_variable_map = { name = dmsd_cult_map key = demand:dmsd_cultural_demand1 value = local_var:dmsd_map_val }
 			}
 		}
 	}
@@ -274,9 +318,20 @@ dmsd_accumulate_stab = {
 		market.location = {
 			if = {
 				limit = { is_key_in_global_variable_map = { name = dmsd_stab_reg1 target = scope:dmsd_sc } }
-				add_to_variable_map = { name = dmsd_stab_map key = "global_variable_map(dmsd_stab_reg1|scope:dmsd_sc)" value = local_var:dmsd_share }
+				set_local_variable = { name = dmsd_map_key value = "global_variable_map(dmsd_stab_reg1|scope:dmsd_sc)" }
+				set_local_variable = { name = dmsd_map_val value = local_var:dmsd_share }
+				if = {
+					limit = { is_key_in_variable_map = { name = dmsd_stab_map target = local_var:dmsd_map_key } }
+					change_local_variable = { name = dmsd_map_val add = "variable_map(dmsd_stab_map|local_var:dmsd_map_key)" }
+				}
+				dmsd_set_variable_map = { name = dmsd_stab_map key = local_var:dmsd_map_key value = local_var:dmsd_map_val }
 			} else = {
-				add_to_variable_map = { name = dmsd_stab_map key = demand:dmsd_stability_demand1 value = local_var:dmsd_share }
+				set_local_variable = { name = dmsd_map_val value = local_var:dmsd_share }
+				if = {
+					limit = { is_key_in_variable_map = { name = dmsd_stab_map target = demand:dmsd_stability_demand1 } }
+					change_local_variable = { name = dmsd_map_val add = "variable_map(dmsd_stab_map|demand:dmsd_stability_demand1)" }
+				}
+				dmsd_set_variable_map = { name = dmsd_stab_map key = demand:dmsd_stability_demand1 value = local_var:dmsd_map_val }
 			}
 		}
 	}

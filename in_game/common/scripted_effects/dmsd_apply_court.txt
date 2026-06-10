@@ -36,9 +36,6 @@ dmsd_apply_court = {
 				}
 
 				set_local_variable = { name = dmsd_gv value = "location.variable_map(dmsd_court_map|scope:dmsd_demand)" }
-				set_local_variable = { name = dbg_gv value = local_var:dmsd_gv }
-				set_local_variable = { name = dbg_bp value = local_var:dmsd_bp }
-				error_log = "DMSD APPLY court gv=[SCOPE.GetLocalVariable('dbg_gv').GetValue|4] bp=[SCOPE.GetLocalVariable('dbg_bp').GetValue|4]"
 				if = {
 					limit = { local_var:dmsd_bp > 0 local_var:dmsd_gv >= 0.01 }
 					if = {
