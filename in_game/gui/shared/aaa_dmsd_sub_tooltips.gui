@@ -5,41 +5,135 @@
 # Each wraps a tooltipwidget + ContextualTooltipType block.
 # Uses GetPlayer for country scope since these are always player-facing.
 
-# ─── Empire Size Inefficiency derivation ───
-# Shows the full math: eco base → ratio → exponent → efficiency %
+# ─── Per-slider spending inefficiency ───
+# Separate template per slider because efficiency is now based on each
+# slider's raw gold, not a shared country-wide economic base.
 
-template dmsd_efficiency_breakdown_tooltip {
+template dmsd_court_efficiency_tooltip {
 	tooltipwidget = {
 		ContextualTooltipType = {
 			blockoverride "tooltip_title" { }
 			blockoverride "tooltip_content" {
 				TooltipListBase = {
-					blockoverride "block_title" { raw_text = "#T Empire Size Inefficiency#!" }
-
+					blockoverride "block_title" { raw_text = "#T Spending Inefficiency#!" }
 					TooltipManualTableField = {
-						text_single = { layoutpolicy_horizontal = expanding raw_text = "Economic Base" }
+						text_single = { layoutpolicy_horizontal = expanding raw_text = "Raw Slider Gold" }
 						expand = { }
-						text_single = { raw_text = "[GetPlayer.MakeScope.ScriptValue('dmsd_tt_eco_base')|0]" }
+						text_single = { raw_text = "[GetPlayer.MakeScope.ScriptValue('dmsd_tt_court_raw')|2]@gold!" }
 					}
 					TooltipManualTableField = {
-						text_single = { layoutpolicy_horizontal = expanding raw_text = "Efficiency Baseline" }
+						text_single = { layoutpolicy_horizontal = expanding raw_text = "Inefficiency Baseline" }
 						expand = { }
-						text_single = { raw_text = "[GetPlayer.MakeScope.ScriptValue('dmsd_tt_eff_baseline')|0]" }
+						text_single = { raw_text = "[GetPlayer.MakeScope.ScriptValue('dmsd_tt_eff_baseline')|0]@gold!" }
 					}
 					TooltipManualTableField = {
-						text_single = { layoutpolicy_horizontal = expanding raw_text = "Doublings past baseline" }
+						text_single = { layoutpolicy_horizontal = expanding raw_text = "× 0.75 per doubling above" }
 						expand = { }
-						text_single = { raw_text = "[GetPlayer.MakeScope.ScriptValue('dmsd_tt_doublings')|1]" }
-					}
-					TooltipManualTableField = {
-						text_single = { layoutpolicy_horizontal = expanding raw_text = "× 0.75 efficiency each" }
-						expand = { }
-						text_single = { raw_text = "" }
+						text_single = { raw_text = " " }
 					}
 					TooltipManualTableField = {
 						text_single = { layoutpolicy_horizontal = expanding raw_text = "#bold = Demand Efficiency#!" }
 						expand = { }
-						text_single = { raw_text = "#bold [GetPlayer.MakeScope.ScriptValue('dmsd_tt_efficiency_pct')|1]%#!" }
+						text_single = { raw_text = "#bold [GetPlayer.MakeScope.ScriptValue('dmsd_tt_court_efficiency_pct')|1]%#!" }
+					}
+				}
+			}
+		}
+	}
+}
+
+template dmsd_diplo_efficiency_tooltip {
+	tooltipwidget = {
+		ContextualTooltipType = {
+			blockoverride "tooltip_title" { }
+			blockoverride "tooltip_content" {
+				TooltipListBase = {
+					blockoverride "block_title" { raw_text = "#T Spending Inefficiency#!" }
+					TooltipManualTableField = {
+						text_single = { layoutpolicy_horizontal = expanding raw_text = "Raw Slider Gold" }
+						expand = { }
+						text_single = { raw_text = "[GetPlayer.MakeScope.ScriptValue('dmsd_tt_diplo_raw')|2]@gold!" }
+					}
+					TooltipManualTableField = {
+						text_single = { layoutpolicy_horizontal = expanding raw_text = "Inefficiency Baseline" }
+						expand = { }
+						text_single = { raw_text = "[GetPlayer.MakeScope.ScriptValue('dmsd_tt_eff_baseline')|0]@gold!" }
+					}
+					TooltipManualTableField = {
+						text_single = { layoutpolicy_horizontal = expanding raw_text = "× 0.75 per doubling above" }
+						expand = { }
+						text_single = { raw_text = " " }
+					}
+					TooltipManualTableField = {
+						text_single = { layoutpolicy_horizontal = expanding raw_text = "#bold = Demand Efficiency#!" }
+						expand = { }
+						text_single = { raw_text = "#bold [GetPlayer.MakeScope.ScriptValue('dmsd_tt_diplo_efficiency_pct')|1]%#!" }
+					}
+				}
+			}
+		}
+	}
+}
+
+template dmsd_stab_efficiency_tooltip {
+	tooltipwidget = {
+		ContextualTooltipType = {
+			blockoverride "tooltip_title" { }
+			blockoverride "tooltip_content" {
+				TooltipListBase = {
+					blockoverride "block_title" { raw_text = "#T Spending Inefficiency#!" }
+					TooltipManualTableField = {
+						text_single = { layoutpolicy_horizontal = expanding raw_text = "Raw Slider Gold" }
+						expand = { }
+						text_single = { raw_text = "[GetPlayer.MakeScope.ScriptValue('dmsd_tt_stab_raw')|2]@gold!" }
+					}
+					TooltipManualTableField = {
+						text_single = { layoutpolicy_horizontal = expanding raw_text = "Inefficiency Baseline" }
+						expand = { }
+						text_single = { raw_text = "[GetPlayer.MakeScope.ScriptValue('dmsd_tt_eff_baseline')|0]@gold!" }
+					}
+					TooltipManualTableField = {
+						text_single = { layoutpolicy_horizontal = expanding raw_text = "× 0.75 per doubling above" }
+						expand = { }
+						text_single = { raw_text = " " }
+					}
+					TooltipManualTableField = {
+						text_single = { layoutpolicy_horizontal = expanding raw_text = "#bold = Demand Efficiency#!" }
+						expand = { }
+						text_single = { raw_text = "#bold [GetPlayer.MakeScope.ScriptValue('dmsd_tt_stab_efficiency_pct')|1]%#!" }
+					}
+				}
+			}
+		}
+	}
+}
+
+template dmsd_cult_efficiency_tooltip {
+	tooltipwidget = {
+		ContextualTooltipType = {
+			blockoverride "tooltip_title" { }
+			blockoverride "tooltip_content" {
+				TooltipListBase = {
+					blockoverride "block_title" { raw_text = "#T Spending Inefficiency#!" }
+					TooltipManualTableField = {
+						text_single = { layoutpolicy_horizontal = expanding raw_text = "Artist Salaries" }
+						expand = { }
+						text_single = { raw_text = "[Multiply_CFixedPoint(MaintenanceSetting.GetExpense, '(CFixedPoint)-1')|2]@gold!" }
+					}
+					TooltipManualTableField = {
+						text_single = { layoutpolicy_horizontal = expanding raw_text = "Inefficiency Baseline" }
+						expand = { }
+						text_single = { raw_text = "[GetPlayer.MakeScope.ScriptValue('dmsd_tt_eff_baseline')|0]@gold!" }
+					}
+					TooltipManualTableField = {
+						text_single = { layoutpolicy_horizontal = expanding raw_text = "× 0.75 per doubling above" }
+						expand = { }
+						text_single = { raw_text = " " }
+					}
+					TooltipManualTableField = {
+						text_single = { layoutpolicy_horizontal = expanding raw_text = "#bold = Demand Efficiency#!" }
+						expand = { }
+						text_single = { raw_text = "#bold [GetPlayer.MakeScope.ScriptValue('dmsd_tt_cult_efficiency_pct')|1]%#!" }
 					}
 				}
 			}

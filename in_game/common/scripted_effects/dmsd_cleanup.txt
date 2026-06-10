@@ -54,13 +54,17 @@ dmsd_full_cleanup = {
 			if = { limit = { has_variable = dmsd_court_slider } remove_variable = dmsd_court_slider }
 			if = { limit = { has_variable = dmsd_last_stability } remove_variable = dmsd_last_stability }
 			if = { limit = { has_variable = dmsd_stab_slider } remove_variable = dmsd_stab_slider }
+			if = { limit = { has_variable = dmsd_cult_raw_gold } remove_variable = dmsd_cult_raw_gold }
+			if = { limit = { has_variable = dmsd_disp_court_reg_io } remove_variable = dmsd_disp_court_reg_io }
+			if = { limit = { has_variable = dmsd_disp_court_rel_io } remove_variable = dmsd_disp_court_rel_io }
+			if = { limit = { has_variable = dmsd_disp_diplo_io } remove_variable = dmsd_disp_diplo_io }
+			if = { limit = { has_variable = dmsd_disp_stab_io } remove_variable = dmsd_disp_stab_io }
+			if = { limit = { has_variable = dmsd_disp_cult_io } remove_variable = dmsd_disp_cult_io }
 		}
 	}
 	if = { limit = { has_global_variable = dmsd_version } remove_global_variable = dmsd_version }
-	if = { limit = { has_global_variable = dmsd_initialized } remove_global_variable = dmsd_initialized }
 	if = { limit = { has_global_variable = dmsd_rebuilding } remove_global_variable = dmsd_rebuilding }
 	if = { limit = { has_global_variable = dmsd_swap } remove_global_variable = dmsd_swap }
-	if = { limit = { has_global_variable = dmsd_dbg_count } remove_global_variable = dmsd_dbg_count }
 	if = { limit = { has_global_variable_map = dmsd_court_reg1 } clear_global_variable_map = dmsd_court_reg1 }
 	if = { limit = { has_global_variable_map = dmsd_diplo_reg1 } clear_global_variable_map = dmsd_diplo_reg1 }
 	if = { limit = { has_global_variable_map = dmsd_stab_reg1 } clear_global_variable_map = dmsd_stab_reg1 }

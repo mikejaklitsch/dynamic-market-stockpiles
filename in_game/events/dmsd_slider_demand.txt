@@ -1,11 +1,11 @@
 ﻿namespace = dmsd_slider_demand
 
-# Efficiency decay: 25% demand loss per doubling of economic base above baseline.
-# efficiency = (baseline / max(baseline, eco_base)) ^ 0.415
-# At 100: 100%. At 200: 75%. At 1000: 37%. At 5000: 20%.
-@dmsd_eff_baseline = 500
-# 0.415 = log(0.75)/log(0.5) — the unique exponent that produces
-# exactly 25% efficiency loss per doubling of economic base.
+# Efficiency decay: 25% demand loss per doubling of raw slider gold above baseline.
+# Computed per-slider from pre-decay gold, not economic base — so the penalty
+# scales with actual spending pressure, not just country size.
+# efficiency = (baseline / max(baseline, raw_gold)) ^ 0.415
+@dmsd_eff_baseline = 250
+# 0.415 = log(0.75)/log(0.5) — produces exactly 25% loss per doubling.
 @dmsd_eff_exponent = 0.415
 
 # === Phase 1: Per-country accumulators ===
@@ -64,9 +64,8 @@ dmsd_slider_demand.1 = {
 		}
 		set_variable = { name = dmsd_disp_stab_io value = "global_variable_map(dmsd_demand_io|local_var:dmsd_disp_d)" }
 
-		# Use inferred slider position instead of court_maintenance trigger.
-		# The trigger returns raw slider position which doesn't account for
-		# reduced spending when government power (legitimacy etc.) is capped.
+		# Raw gold before efficiency decay. Uses inferred slider because
+		# court_maintenance trigger doesn't account for gov power capping.
 		set_local_variable = {
 			name = dmsd_gold
 			value = {
@@ -78,13 +77,17 @@ dmsd_slider_demand.1 = {
 						multiply = 0.1
 						multiply = "country_economical_base"
 						divide = { value = 1 add = "modifier:court_spending_efficiency" min = 0.5 }
-						multiply = {
-							value = @dmsd_eff_baseline
-							divide = { value = "country_economical_base" min = @dmsd_eff_baseline }
-							pow = @dmsd_eff_exponent
-						}
 					}
 				}
+			}
+		}
+		# Per-slider efficiency decay based on raw gold, not economic base
+		change_local_variable = {
+			name = dmsd_gold
+			multiply = {
+				value = @dmsd_eff_baseline
+				divide = { value = local_var:dmsd_gold min = @dmsd_eff_baseline }
+				pow = @dmsd_eff_exponent
 			}
 		}
 		dmsd_accumulate_court = yes
@@ -96,7 +99,6 @@ dmsd_slider_demand.2 = {
 	title = hidden_event.t
 	hidden = yes
 	immediate = {
-		# diplomatic_spending_cost is the base rate (0.1 from auto_modifiers).
 		set_local_variable = {
 			name = dmsd_gold
 			value = {
@@ -104,11 +106,14 @@ dmsd_slider_demand.2 = {
 				multiply = "modifier:diplomatic_spending_cost"
 				multiply = "country_economical_base"
 				divide = { value = 1 add = "modifier:diplomatic_upkeep_efficiency" min = 0.5 }
-				multiply = {
-					value = @dmsd_eff_baseline
-					divide = { value = "country_economical_base" min = @dmsd_eff_baseline }
-					pow = @dmsd_eff_exponent
-				}
+			}
+		}
+		change_local_variable = {
+			name = dmsd_gold
+			multiply = {
+				value = @dmsd_eff_baseline
+				divide = { value = local_var:dmsd_gold min = @dmsd_eff_baseline }
+				pow = @dmsd_eff_exponent
 			}
 		}
 		dmsd_accumulate_diplo = yes
@@ -133,16 +138,18 @@ dmsd_slider_demand.3 = {
 						multiply = 0.1
 						multiply = "country_economical_base"
 						divide = { value = 1 add = "modifier:stability_cost_efficiency" min = 0.5 }
-						multiply = {
-							value = @dmsd_eff_baseline
-							divide = { value = "country_economical_base" min = @dmsd_eff_baseline }
-							pow = @dmsd_eff_exponent
-						}
 					}
 				}
 			}
 		}
-
+		change_local_variable = {
+			name = dmsd_gold
+			multiply = {
+				value = @dmsd_eff_baseline
+				divide = { value = local_var:dmsd_gold min = @dmsd_eff_baseline }
+				pow = @dmsd_eff_exponent
+			}
+		}
 		dmsd_accumulate_stab = yes
 	}
 }
@@ -154,21 +161,42 @@ dmsd_slider_demand.5 = {
 	title = hidden_event.t
 	hidden = yes
 	immediate = {
-		# Sum artist salaries as monthly gold
-		set_local_variable = { name = dmsd_gold value = 0 }
+		# Cultural gold from artist salaries.
+		# Formula: total = 0.025 × tax_base × N² / 12 × (1 + salary_modifiers)
+		# Per-character modifiers are averaged across all artists.
+		set_local_variable = { name = dmsd_num_artists value = 0 }
+		set_local_variable = { name = dmsd_char_mod_sum value = 0 }
 		every_artist = {
-			change_local_variable = {
-				name = dmsd_gold
-				add = { value = yearly_salary divide = 12 }
+			change_local_variable = { name = dmsd_num_artists add = 1 }
+			change_local_variable = { name = dmsd_char_mod_sum add = "modifier:artist_salary_modifier_on_character" }
+		}
+		set_local_variable = {
+			name = dmsd_gold
+			value = {
+				value = 0.025
+				multiply = "country_tax_base"
+				multiply = local_var:dmsd_num_artists
+				multiply = local_var:dmsd_num_artists
+				divide = 12
+				multiply = {
+					value = 1
+					add = "modifier:artist_salary_modifier"
+					add = {
+						value = local_var:dmsd_char_mod_sum
+						divide = { value = local_var:dmsd_num_artists min = 1 }
+					}
+				}
 			}
 		}
 
-		# Apply efficiency decay
+		set_variable = { name = dmsd_cult_raw_gold value = local_var:dmsd_gold }
+
+		# Per-slider efficiency decay based on raw gold
 		change_local_variable = {
 			name = dmsd_gold
 			multiply = {
 				value = @dmsd_eff_baseline
-				divide = { value = "country_economical_base" min = @dmsd_eff_baseline }
+				divide = { value = local_var:dmsd_gold min = @dmsd_eff_baseline }
 				pow = @dmsd_eff_exponent
 			}
 		}

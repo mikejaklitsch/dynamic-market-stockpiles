@@ -203,7 +203,7 @@ template ExpenseSettingTooltip {
 			# ═════════════════════════════════════════════════════════════════
 			# DMSD ADDITION: Concise demand with hover drill-downs
 			# ═════════════════════════════════════════════════════════════════
-			# Hover efficiency % → derivation sub-tooltip (dmsd_efficiency_breakdown_tooltip)
+			# Hover efficiency % → per-slider breakdown sub-tooltip
 			# Hover effective demand → goods list sub-tooltip (dmsd_*_goods_tooltip)
 
 			# ─── COURT ───
@@ -219,18 +219,18 @@ template ExpenseSettingTooltip {
 					text_single = { raw_text = "[Multiply_CFixedPoint(MaintenanceSetting.GetExpense, '(CFixedPoint)-1')|2]@gold!" }
 				}
 				TooltipManualTableField = {
-					text_single = { layoutpolicy_horizontal = expanding raw_text = "× Empire Size Efficiency" }
+					text_single = { layoutpolicy_horizontal = expanding raw_text = "× Spending Efficiency" }
 					expand = { }
 					text_single = {
-						raw_text = "[MaintenanceSetting.GetSettingOwner.MakeScope.ScriptValue('dmsd_tt_efficiency_pct')|1]%"
-						using = dmsd_efficiency_breakdown_tooltip
+						raw_text = "[MaintenanceSetting.GetSettingOwner.MakeScope.ScriptValue('dmsd_tt_court_efficiency_pct')|1]%"
+						using = dmsd_court_efficiency_tooltip
 					}
 				}
 				TooltipManualTableField = {
 					text_single = { layoutpolicy_horizontal = expanding raw_text = "#bold = Effective Goods Demand#!" }
 					expand = { }
 					text_single = {
-						raw_text = "#bold [Multiply_CFixedPoint(Multiply_CFixedPoint(MaintenanceSetting.GetExpense, '(CFixedPoint)-1'), MaintenanceSetting.GetSettingOwner.MakeScope.ScriptValue('dmsd_tt_efficiency'))|2]@gold!#!"
+						raw_text = "#bold [Multiply_CFixedPoint(Multiply_CFixedPoint(MaintenanceSetting.GetExpense, '(CFixedPoint)-1'), MaintenanceSetting.GetSettingOwner.MakeScope.ScriptValue('dmsd_tt_court_efficiency'))|2]@gold!#!"
 					}
 				}
 			}
@@ -319,11 +319,11 @@ template ExpenseSettingTooltip {
 					text_single = { raw_text = "[MaintenanceSetting.GetSettingOwner.MakeScope.ScriptValue('dmsd_tt_diplo_raw')|2]@gold!" }
 				}
 				TooltipManualTableField = {
-					text_single = { layoutpolicy_horizontal = expanding raw_text = "× Empire Size Efficiency" }
+					text_single = { layoutpolicy_horizontal = expanding raw_text = "× Spending Efficiency" }
 					expand = { }
 					text_single = {
-						raw_text = "[MaintenanceSetting.GetSettingOwner.MakeScope.ScriptValue('dmsd_tt_efficiency_pct')|1]%"
-						using = dmsd_efficiency_breakdown_tooltip
+						raw_text = "[MaintenanceSetting.GetSettingOwner.MakeScope.ScriptValue('dmsd_tt_diplo_efficiency_pct')|1]%"
+						using = dmsd_diplo_efficiency_tooltip
 					}
 				}
 				TooltipManualTableField = {
@@ -397,18 +397,18 @@ template ExpenseSettingTooltip {
 					text_single = { raw_text = "[Multiply_CFixedPoint(MaintenanceSetting.GetExpense, '(CFixedPoint)-1')|2]@gold!" }
 				}
 				TooltipManualTableField = {
-					text_single = { layoutpolicy_horizontal = expanding raw_text = "× Empire Size Efficiency" }
+					text_single = { layoutpolicy_horizontal = expanding raw_text = "× Spending Efficiency" }
 					expand = { }
 					text_single = {
-						raw_text = "[MaintenanceSetting.GetSettingOwner.MakeScope.ScriptValue('dmsd_tt_efficiency_pct')|1]%"
-						using = dmsd_efficiency_breakdown_tooltip
+						raw_text = "[MaintenanceSetting.GetSettingOwner.MakeScope.ScriptValue('dmsd_tt_cult_efficiency_pct')|1]%"
+						using = dmsd_cult_efficiency_tooltip
 					}
 				}
 				TooltipManualTableField = {
 					text_single = { layoutpolicy_horizontal = expanding raw_text = "#bold = Effective Goods Demand#!" }
 					expand = { }
 					text_single = {
-						raw_text = "#bold [Multiply_CFixedPoint(Multiply_CFixedPoint(MaintenanceSetting.GetExpense, '(CFixedPoint)-1'), MaintenanceSetting.GetSettingOwner.MakeScope.ScriptValue('dmsd_tt_efficiency'))|2]@gold!#!"
+						raw_text = "#bold [Multiply_CFixedPoint(Multiply_CFixedPoint(MaintenanceSetting.GetExpense, '(CFixedPoint)-1'), MaintenanceSetting.GetSettingOwner.MakeScope.ScriptValue('dmsd_tt_cult_efficiency'))|2]@gold!#!"
 					}
 				}
 			}

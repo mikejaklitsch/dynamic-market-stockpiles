@@ -54,7 +54,7 @@ template StabilityExpenseSettingParentTooltip {
 			# DMSD ADDITION: Concise demand with hover drill-downs
 			# ═════════════════════════════════════════════════════════════════
 			# Uses CEconomy GUI accessor for the actual slider value.
-			# Hover efficiency % → dmsd_efficiency_breakdown_tooltip
+			# Hover efficiency % → per-slider breakdown sub-tooltip
 			# Hover effective demand → dmsd_stab_goods_tooltip
 
 			TooltipListBase = {
@@ -69,18 +69,18 @@ template StabilityExpenseSettingParentTooltip {
 					text_single = { raw_text = "[Multiply_CFixedPoint(CEconomy.GetStabilityInvestmentExpense, '(CFixedPoint)-1')|2]@gold!" }
 				}
 				TooltipManualTableField = {
-					text_single = { layoutpolicy_horizontal = expanding raw_text = "× Empire Size Efficiency" }
+					text_single = { layoutpolicy_horizontal = expanding raw_text = "× Spending Efficiency" }
 					expand = { }
 					text_single = {
-						raw_text = "[GetPlayer.MakeScope.ScriptValue('dmsd_tt_efficiency_pct')|1]%"
-						using = dmsd_efficiency_breakdown_tooltip
+						raw_text = "[GetPlayer.MakeScope.ScriptValue('dmsd_tt_stab_efficiency_pct')|1]%"
+						using = dmsd_stab_efficiency_tooltip
 					}
 				}
 				TooltipManualTableField = {
 					text_single = { layoutpolicy_horizontal = expanding raw_text = "#bold = Effective Goods Demand#!" }
 					expand = { }
 					text_single = {
-						raw_text = "#bold [Multiply_CFixedPoint(Multiply_CFixedPoint(CEconomy.GetStabilityInvestmentExpense, '(CFixedPoint)-1'), GetPlayer.MakeScope.ScriptValue('dmsd_tt_efficiency'))|2]@gold!#!"
+						raw_text = "#bold [Multiply_CFixedPoint(Multiply_CFixedPoint(CEconomy.GetStabilityInvestmentExpense, '(CFixedPoint)-1'), GetPlayer.MakeScope.ScriptValue('dmsd_tt_stab_efficiency'))|2]@gold!#!"
 					}
 				}
 			}
