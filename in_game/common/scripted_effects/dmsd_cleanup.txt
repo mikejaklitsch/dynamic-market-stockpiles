@@ -38,9 +38,11 @@
 }
 
 dmsd_full_cleanup = {
-	every_in_global_list = {
-		variable = dmsd_active_locations
-		dmsd_strip_location = yes
+	# Iterate all markets directly — can't rely on dmsd_active_locations
+	# because dmsd_cleanup_orphans may have already cleared the list
+	# earlier in the same monthly pulse.
+	every_market_in_world = {
+		location = { dmsd_strip_location = yes }
 	}
 	clear_global_variable_list = dmsd_active_locations
 	# Clear per-country proximity caches
@@ -60,6 +62,18 @@ dmsd_full_cleanup = {
 			if = { limit = { has_variable = dmsd_disp_diplo_io } remove_variable = dmsd_disp_diplo_io }
 			if = { limit = { has_variable = dmsd_disp_stab_io } remove_variable = dmsd_disp_stab_io }
 			if = { limit = { has_variable = dmsd_disp_cult_io } remove_variable = dmsd_disp_cult_io }
+			if = { limit = { has_variable_map = dmsd_prox_court_io } clear_variable_map = dmsd_prox_court_io }
+			if = { limit = { has_variable_map = dmsd_prox_court_gold } clear_variable_map = dmsd_prox_court_gold }
+			if = { limit = { has_variable_map = dmsd_prox_court_scale } clear_variable_map = dmsd_prox_court_scale }
+			if = { limit = { has_variable_map = dmsd_prox_diplo_io } clear_variable_map = dmsd_prox_diplo_io }
+			if = { limit = { has_variable_map = dmsd_prox_diplo_gold } clear_variable_map = dmsd_prox_diplo_gold }
+			if = { limit = { has_variable_map = dmsd_prox_diplo_scale } clear_variable_map = dmsd_prox_diplo_scale }
+			if = { limit = { has_variable_map = dmsd_prox_stab_io } clear_variable_map = dmsd_prox_stab_io }
+			if = { limit = { has_variable_map = dmsd_prox_stab_gold } clear_variable_map = dmsd_prox_stab_gold }
+			if = { limit = { has_variable_map = dmsd_prox_stab_scale } clear_variable_map = dmsd_prox_stab_scale }
+			if = { limit = { has_variable_map = dmsd_prox_cult_io } clear_variable_map = dmsd_prox_cult_io }
+			if = { limit = { has_variable_map = dmsd_prox_cult_gold } clear_variable_map = dmsd_prox_cult_gold }
+			if = { limit = { has_variable_map = dmsd_prox_cult_scale } clear_variable_map = dmsd_prox_cult_scale }
 		}
 	}
 	if = { limit = { has_global_variable = dmsd_version } remove_global_variable = dmsd_version }

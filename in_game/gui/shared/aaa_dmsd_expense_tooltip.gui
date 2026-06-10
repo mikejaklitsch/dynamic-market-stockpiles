@@ -210,7 +210,7 @@ template ExpenseSettingTooltip {
 			# Uses MaintenanceSetting.GetExpense for the actual gold spent,
 			# which accounts for slider position, efficiency, and benefit capping.
 			TooltipListBase = {
-				visible = "[MaintenanceSetting.IsCourt]"
+				visible = "[And(MaintenanceSetting.IsCourt, HasGameRuleFlag('dmsd_demand_active'))]"
 				blockoverride "block_title" { raw_text = "#T Cost of Court Goods Demand#!" }
 
 				TooltipManualTableField = {
@@ -238,7 +238,7 @@ template ExpenseSettingTooltip {
 			# ─── COURT PROXIMITY SOURCES ───
 			# Per-location breakdown showing where demand is distributed
 			TooltipListBase = {
-				visible = "[MaintenanceSetting.IsCourt]"
+				visible = "[And(MaintenanceSetting.IsCourt, HasGameRuleFlag('dmsd_demand_active'))]"
 				blockoverride "block_title" { raw_text = "#T Demand by Proximity Source Last Month#!" }
 				TooltipListScrollArea = {
 					blockoverride "block_scrollarea" { maximumsize = { -1 200 } minimumsize = { -1 30 } }
@@ -310,7 +310,7 @@ template ExpenseSettingTooltip {
 
 			# ─── DIPLOMATIC ───
 			TooltipListBase = {
-				visible = "[EqualTo_string( Localize('[diplomatic_maintenance|e]'), MaintenanceSetting.GetName)]"
+				visible = "[And(EqualTo_string( Localize('[diplomatic_maintenance|e]'), MaintenanceSetting.GetName), HasGameRuleFlag('dmsd_demand_active'))]"
 				blockoverride "block_title" { raw_text = "#T Diplomatic Spending Goods Demand#!" }
 
 				TooltipManualTableField = {
@@ -337,7 +337,7 @@ template ExpenseSettingTooltip {
 
 			# ─── DIPLOMATIC PROXIMITY SOURCES ───
 			TooltipListBase = {
-				visible = "[EqualTo_string( Localize('[diplomatic_maintenance|e]'), MaintenanceSetting.GetName)]"
+				visible = "[And(EqualTo_string( Localize('[diplomatic_maintenance|e]'), MaintenanceSetting.GetName), HasGameRuleFlag('dmsd_demand_active'))]"
 				blockoverride "block_title" { raw_text = "#T Demand by Proximity Source Last Month#!" }
 				TooltipListScrollArea = {
 					blockoverride "block_scrollarea" { maximumsize = { -1 200 } minimumsize = { -1 30 } }
@@ -388,7 +388,7 @@ template ExpenseSettingTooltip {
 
 			# ─── CULTURAL ───
 			TooltipListBase = {
-				visible = "[EqualTo_string( Localize('[cultural_maintenance_s|e]'), MaintenanceSetting.GetName)]"
+				visible = "[And(EqualTo_string( Localize('[cultural_maintenance_s|e]'), MaintenanceSetting.GetName), HasGameRuleFlag('dmsd_demand_active'))]"
 				blockoverride "block_title" { raw_text = "#T Culture Investment Goods Demand#!" }
 
 				TooltipManualTableField = {
@@ -415,7 +415,7 @@ template ExpenseSettingTooltip {
 
 			# ─── CULTURAL PROXIMITY SOURCES ───
 			TooltipListBase = {
-				visible = "[EqualTo_string( Localize('[cultural_maintenance_s|e]'), MaintenanceSetting.GetName)]"
+				visible = "[And(EqualTo_string( Localize('[cultural_maintenance_s|e]'), MaintenanceSetting.GetName), HasGameRuleFlag('dmsd_demand_active'))]"
 				blockoverride "block_title" { raw_text = "#T Demand by Proximity Source Last Month#!" }
 				TooltipListScrollArea = {
 					blockoverride "block_scrollarea" { maximumsize = { -1 200 } minimumsize = { -1 30 } }

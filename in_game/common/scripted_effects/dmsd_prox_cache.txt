@@ -1,7 +1,12 @@
-﻿# Proximity source cache — stores locations with local_proximity_source
-# and their strengths on the country for fast Phase 1 iteration.
+﻿# ═══════════════════════════════════════════════════════════════════════════════
+# PROXIMITY SOURCE CACHE
+# ═══════════════════════════════════════════════════════════════════════════════
+# Scans owned locations for proximity sources (modifier:local_proximity_source)
+# and caches them on the country as a list + weight map. Phase 1 events
+# distribute gold across these sources proportionally.
+#
 # Rebuilt monthly for players, yearly for AI, and on capital move.
-# Non-real countries skip the scan and just use their capital.
+# Countries with no proximity sources fall back to their capital with weight 1.
 
 dmsd_rebuild_prox_cache = {
 	clear_variable_list = dmsd_prox_sources

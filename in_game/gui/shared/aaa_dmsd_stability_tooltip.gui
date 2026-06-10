@@ -58,6 +58,7 @@ template StabilityExpenseSettingParentTooltip {
 			# Hover effective demand → dmsd_stab_goods_tooltip
 
 			TooltipListBase = {
+				visible = "[HasGameRuleFlag('dmsd_demand_active')]"
 				block "content_datacontext" {}
 				blockoverride "block_title" { raw_text = "#T Stability Investment Goods Demand#!" }
 
@@ -87,6 +88,7 @@ template StabilityExpenseSettingParentTooltip {
 
 			# ─── STABILITY PROXIMITY SOURCES ───
 			TooltipListBase = {
+				visible = "[HasGameRuleFlag('dmsd_demand_active')]"
 				block "content_datacontext" {}
 				blockoverride "block_title" { raw_text = "#T Demand by Proximity Source Last Month#!" }
 				TooltipListScrollArea = {

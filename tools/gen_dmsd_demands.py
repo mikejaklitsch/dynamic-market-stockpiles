@@ -36,7 +36,7 @@ PRICES = {
     "legumes": 1, "liquor": 2.5, "livestock": 1.5, "maize": 1,
     "marble": 5, "medicaments": 1, "olives": 1, "paper": 2,
     "pearls": 4, "pepper": 5, "porcelain": 3, "potato": 1,
-    "salt": 4, "silk": 4, "sugar": 3, "tea": 3,
+    "salt": 4, "silk": 4, "silver": 4, "sugar": 3, "tea": 3,
     "tobacco": 3, "tools": 3, "weaponry": 3, "wheat": 1,
     "wild_game": 1, "wine": 2, "wool": 2.5,
 }
@@ -136,26 +136,27 @@ STAB_REGIONAL = {
 }
 
 # --- CULTURAL: regional subcontinent variants ---
-# Core goods: paper, dyes, fine_cloth, glass (artist materials)
-# Regionals add thematic craft/art goods
+# Core goods: paper (manuscripts), dyes (pigments), cloth (canvas),
+# tools (brushes/chisels, low weight). Deliberately avoids fine_cloth
+# and glass which are court's identity goods.
 
-_cult_core = [("paper", 1.0), ("dyes", 1.0), ("fine_cloth", 0.6), ("glass", 0.5)]
+_cult_core = [("paper", 1.0), ("dyes", 1.0), ("cloth", 0.6), ("tools", 0.3)]
 
 CULT_REGIONAL = {
     "cultural_demand": make_basket(_cult_core),
-    "cult_we":  make_basket(_cult_core + [("marble", 0.5), ("jewelry", 0.5)]),
-    "cult_ee":  make_basket(_cult_core + [("beeswax", 0.5), ("amber", 0.5)]),
-    "cult_me":  make_basket(_cult_core + [("gems", 0.5), ("silk", 0.5)]),
-    "cult_ca":  make_basket(_cult_core + [("silk", 0.5), ("wool", 0.5)]),
-    "cult_sa":  make_basket(_cult_core + [("gems", 0.5), ("cotton", 0.5)]),
-    "cult_sea": make_basket(_cult_core + [("lacquerware", 0.5), ("silk", 0.5)]),
-    "cult_ea":  make_basket(_cult_core + [("porcelain", 0.5), ("lacquerware", 0.5)]),
-    "cult_naf": make_basket(_cult_core + [("marble", 0.5), ("leather", 0.5)]),
-    "cult_af":  make_basket(_cult_core + [("ivory", 0.5), ("leather", 0.5)]),
-    "cult_eaf": make_basket(_cult_core + [("ivory", 0.5), ("leather", 0.5)]),
-    "cult_nam": make_basket(_cult_core + [("leather", 0.5), ("fur", 0.5)]),
-    "cult_sam": make_basket(_cult_core + [("gems", 0.5), ("cotton", 0.5)]),
-    "cult_nas": make_basket(_cult_core + [("ivory", 0.5), ("fur", 0.5)]),
+    "cult_we":  make_basket(_cult_core + [("marble", 0.6), ("jewelry", 0.4), ("silver", 0.3)]),
+    "cult_ee":  make_basket(_cult_core + [("beeswax", 0.6), ("amber", 0.5), ("fur", 0.3)]),
+    "cult_me":  make_basket(_cult_core + [("gems", 0.5), ("silk", 0.5), ("marble", 0.3)]),
+    "cult_ca":  make_basket(_cult_core + [("silk", 0.6), ("wool", 0.5), ("leather", 0.3)]),
+    "cult_sa":  make_basket(_cult_core + [("gems", 0.5), ("cotton", 0.5), ("incense", 0.3)]),
+    "cult_sea": make_basket(_cult_core + [("lacquerware", 0.6), ("silk", 0.4), ("cotton", 0.3)]),
+    "cult_ea":  make_basket(_cult_core + [("porcelain", 0.6), ("lacquerware", 0.5), ("silk", 0.3)]),
+    "cult_naf": make_basket(_cult_core + [("marble", 0.5), ("leather", 0.5), ("salt", 0.3)]),
+    "cult_af":  make_basket(_cult_core + [("ivory", 0.6), ("leather", 0.4), ("cotton", 0.3)]),
+    "cult_eaf": make_basket(_cult_core + [("ivory", 0.5), ("incense", 0.4), ("leather", 0.3)]),
+    "cult_nam": make_basket(_cult_core + [("leather", 0.5), ("fur", 0.5), ("beeswax", 0.3)]),
+    "cult_sam": make_basket(_cult_core + [("gems", 0.6), ("cotton", 0.4), ("silver", 0.3)]),
+    "cult_nas": make_basket(_cult_core + [("ivory", 0.5), ("fur", 0.5), ("wool", 0.3)]),
 }
 
 # =============================================================================
@@ -284,6 +285,85 @@ def generate_init():
 
 
 # =============================================================================
+# DISPLAY NAMES FOR DEMAND TYPES
+# =============================================================================
+
+DISPLAY_NAMES = {
+    # Court regional
+    "court_demand": "Court Demand",
+    "court_we": "Western European Court Demand",
+    "court_ee": "Eastern European Court Demand",
+    "court_me": "Middle Eastern Court Demand",
+    "court_ca": "Central Asian Court Demand",
+    "court_sa": "South Asian Court Demand",
+    "court_sea": "Southeast Asian Court Demand",
+    "court_ea": "East Asian Court Demand",
+    "court_naf": "North African Court Demand",
+    "court_af": "African Court Demand",
+    "court_eaf": "East African Court Demand",
+    "court_nam": "North American Court Demand",
+    "court_sam": "South American Court Demand",
+    "court_nas": "North Asian Court Demand",
+    # Court religion
+    "rc_christian": "Christian Court Demand",
+    "rc_muslim": "Muslim Court Demand",
+    "rc_buddhist": "Buddhist Court Demand",
+    "rc_dharmic": "Dharmic Court Demand",
+    "rc_folk_asian": "Asian Folk Court Demand",
+    "rc_zoroastrian": "Zoroastrian Court Demand",
+    "rc_israelite": "Israelite Court Demand",
+    "rc_mandean": "Mandean Court Demand",
+    "rc_manichaean": "Manichaean Court Demand",
+    "rc_tonal": "Tonal Court Demand",
+    "rc_folk_north_american": "North American Folk Court Demand",
+    "rc_folk_central_american": "Central American Folk Court Demand",
+    "rc_folk_caribbean": "Caribbean Folk Court Demand",
+    "rc_folk_south_american": "South American Folk Court Demand",
+    "rc_folk_peruvian": "Peruvian Folk Court Demand",
+    "rc_folk_brazilian": "Brazilian Folk Court Demand",
+    "rc_folk_argentinian": "Argentinian Folk Court Demand",
+    # Diplomatic
+    "diplomatic_demand": "Diplomatic Spending Demand",
+    "diplo_salt": "West African Diplomatic Spending Demand",
+    # Stability
+    "stability_demand": "Stability Investment Demand",
+    "stab_ca": "Central Asian Stability Investment Demand",
+    "stab_nas": "North Asian Stability Investment Demand",
+    # Cultural
+    "cultural_demand": "Cultural Investment Demand",
+    "cult_we": "Western European Cultural Demand",
+    "cult_ee": "Eastern European Cultural Demand",
+    "cult_me": "Middle Eastern Cultural Demand",
+    "cult_ca": "Central Asian Cultural Demand",
+    "cult_sa": "South Asian Cultural Demand",
+    "cult_sea": "Southeast Asian Cultural Demand",
+    "cult_ea": "East Asian Cultural Demand",
+    "cult_naf": "North African Cultural Demand",
+    "cult_af": "African Cultural Demand",
+    "cult_eaf": "East African Cultural Demand",
+    "cult_nam": "North American Cultural Demand",
+    "cult_sam": "South American Cultural Demand",
+    "cult_nas": "North Asian Cultural Demand",
+}
+
+
+# =============================================================================
+# GENERATE DEMAND LOCALIZATION
+# =============================================================================
+
+def generate_demand_loc():
+    lines = ["l_english:", " # Generated by gen_dmsd_demands.py"]
+    lines.append(' hidden_event.t: "Hidden Event"')
+    lines.append("")
+    for name, _ in ALL_VARIANTS:
+        display = DISPLAY_NAMES.get(name, name)
+        lines.append(f' dmsd_{name}1: "{display}"')
+        lines.append(f' dmsd_{name}2: "{display}"')
+    lines.append("")
+    return "\n".join(lines)
+
+
+# =============================================================================
 # GENERATE IO LOCALIZATION
 # =============================================================================
 
@@ -363,6 +443,7 @@ def main():
         "demands": generate_demands(),
         "ios": generate_ios(),
         "init": generate_init(),
+        "demand_loc": generate_demand_loc(),
         "io_loc": generate_io_loc(),
         "io_biases": generate_io_biases(),
         "version": generate_version(),
@@ -376,6 +457,7 @@ def main():
             "demands": os.path.join(mod_dir, "in_game", "common", "goods_demand", "dmsd_generated_demands.txt"),
             "ios": os.path.join(mod_dir, "in_game", "common", "international_organizations", "dmsd_generated_ios.txt"),
             "init": os.path.join(mod_dir, "in_game", "common", "scripted_effects", "dmsd_generated_init.txt"),
+            "demand_loc": os.path.join(mod_dir, "in_game", "localization", "english", "dmsd_demands_l_english.yml"),
             "io_loc": os.path.join(mod_dir, "main_menu", "localization", "english", "dmsd_generated_ios_l_english.yml"),
             "io_biases": os.path.join(mod_dir, "in_game", "common", "biases", "dmsd_generated_biases.txt"),
             "version": os.path.join(mod_dir, "main_menu", "common", "script_values", "dmsd_version.txt"),

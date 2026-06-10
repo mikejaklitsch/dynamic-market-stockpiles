@@ -1,4 +1,15 @@
-﻿
+﻿# ═══════════════════════════════════════════════════════════════════════════════
+# ON-ACTION HOOKS
+# ═══════════════════════════════════════════════════════════════════════════════
+# Entry points for both the stockpile scaling and slider demand systems.
+#
+# Monthly execution order:
+#   1. weather_monthly_pulse (global): stockpile scaling, version check,
+#      swap toggle, orphan cleanup, Phase 2 kickstart (fires event .4 +1 day)
+#   2. monthly_country_pulse (per-country): prox cache rebuild (player),
+#      Phase 1 events (.1-.3, .5) — gold computation + accumulation
+#   3. Phase 2 event .4 fires the next day, applying accumulated demand
+
 on_game_start = {
 	on_actions = {
 		dmsd_update_stockpile_scaling
@@ -50,9 +61,13 @@ dmsd_prox_cache_on_capital = {
 	effect = { dmsd_rebuild_prox_cache = yes }
 }
 
-# ═══════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # DYNAMIC STOCKPILE SCALING
-# ═══════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
+# Adjusts market stockpile capacity based on total goods value traded.
+# Markets trading above the 2500 threshold get bonus capacity; below get reduced.
+# Clamped to -95% so capacity never drops below 5% of base.
+# Uses dws_ prefix variables (legacy — persisted in existing saves).
 
 dmsd_update_stockpile_scaling = {
 	effect = {
@@ -121,12 +136,14 @@ dmsd_update_stockpile_scaling = {
 	}
 }
 
-# ═══════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 # SLIDER DEMAND SYSTEM
-# ═══════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
 
 # Version-checked init: triggers on game start, save load, or mod update.
-# Rebuilds registries and IOs when version is missing or stale.
+# Rebuilds demand registries (subcontinent→demand type mappings),
+# IO weight containers, and proximity caches for all countries.
+# Version bump in dmsd_version.txt forces reinit on next load.
 dmsd_init_check = {
 	trigger = {
 		NOT = { has_global_variable = dmsd_rebuilding }
@@ -153,6 +170,11 @@ dmsd_init_check = {
 	}
 }
 
+# Each demand type has a twin (e.g. dmsd_court_we1/dmsd_court_we2).
+# We alternate between them monthly because add_temporary_demand can't
+# update an existing demand's scale — you have to remove and re-add.
+# The swap ensures the old demand is a different type from the new one,
+# so remove + add happen cleanly without race conditions.
 dmsd_swap_toggle = {
 	trigger = { NOT = { has_game_rule = dmsd_slider_demand_disabled } }
 	effect = {

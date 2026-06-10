@@ -12,7 +12,7 @@ dmsd_stockpiles = {
 dmsd_slider_demand = {
 	default = dmsd_slider_demand_enabled
 
-	dmsd_slider_demand_enabled = { flag = general_rule }
+	dmsd_slider_demand_enabled = { flag = general_rule flag = dmsd_demand_active }
 
 	dmsd_slider_demand_disabled = {
 		flag = general_rule

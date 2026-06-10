@@ -1,22 +1,42 @@
 ﻿namespace = dmsd_slider_demand
 
-# Efficiency decay: 25% demand loss per doubling of raw slider gold above baseline.
-# Computed per-slider from pre-decay gold, not economic base — so the penalty
-# scales with actual spending pressure, not just country size.
-# efficiency = (baseline / max(baseline, raw_gold)) ^ 0.415
+# ═══════════════════════════════════════════════════════════════════════════════
+# SLIDER DEMAND EVENTS
+# ═══════════════════════════════════════════════════════════════════════════════
+# Two-phase monthly cycle converting slider spending into market demand.
+#
+# Phase 1 (events .1-.3, .5): fires per-country via monthly_country_pulse.
+#   Each slider computes its gold, applies efficiency decay, then distributes
+#   across proximity sources into market location maps.
+#
+# Phase 2 (event .4): fires once globally via weather_monthly_pulse + 1 day.
+#   Reads each market's accumulated gold maps, converts to demand scale
+#   (gold / basket_price), and applies add_temporary_demand.
+#
+# The 1-day offset between phases ensures all countries finish Phase 1
+# before any market reads the maps in Phase 2.
+
+# --- Per-slider efficiency decay ---
+# Diminishing returns on heavy spending. Each doubling of raw gold past
+# the baseline costs 25% efficiency. Per-slider, not country-wide — a
+# large nation spending modestly is unpenalized.
 @dmsd_eff_baseline = 250
-# 0.415 = log(0.75)/log(0.5) — produces exactly 25% loss per doubling.
+# 0.415 = log(0.75)/log(0.5), the exponent that yields exactly ×0.75 per doubling.
 @dmsd_eff_exponent = 0.415
 
-# === Phase 1: Per-country accumulators ===
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 1: PER-COUNTRY ACCUMULATORS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# --- Event .1: Court spending ---
+# Gold = inferred_slider × 0.1 × eco_base / efficiency_divisor
+# Court splits 50/50 between regional and religion demand baskets.
 dmsd_slider_demand.1 = {
 	type = country_event
 	title = hidden_event.t
 	hidden = yes
 	immediate = {
-		# Ensure proximity cache exists — handles player switching to an
-		# AI nation whose yearly cache hasn't been built yet
 		if = {
 			limit = { NOT = { has_variable_list = dmsd_prox_sources } }
 			dmsd_rebuild_prox_cache = yes
@@ -25,12 +45,11 @@ dmsd_slider_demand.1 = {
 		religion = { group = { save_temporary_scope_as = dmsd_rg } }
 		dmsd_infer_court_slider = yes
 
-		# Save active IO references for GUI tooltip display.
-		# The GUI reads these to iterate the correct variant's goods.
-		# Capital subcontinent determines regional variant.
+		# Resolve demand variant IOs for GUI tooltip display.
+		# Two-step lookup: subcontinent → demand type → IO.
+		# Results stored as country variables read by GetVariable in GUI.
 		capital = { sub_continent = { save_temporary_scope_as = dmsd_disp_sc } }
 
-		# Court regional — two-step lookup via local variable middleman
 		if = {
 			limit = { is_key_in_global_variable_map = { name = dmsd_court_reg1 target = scope:dmsd_disp_sc } }
 			set_local_variable = { name = dmsd_disp_d value = "global_variable_map(dmsd_court_reg1|scope:dmsd_disp_sc)" }
@@ -39,14 +58,13 @@ dmsd_slider_demand.1 = {
 		}
 		set_variable = { name = dmsd_disp_court_reg_io value = "global_variable_map(dmsd_demand_io|local_var:dmsd_disp_d)" }
 
-		# Court religion
 		if = {
 			limit = { is_key_in_global_variable_map = { name = dmsd_court_reg1 target = scope:dmsd_rg } }
 			set_local_variable = { name = dmsd_disp_d value = "global_variable_map(dmsd_court_reg1|scope:dmsd_rg)" }
 			set_variable = { name = dmsd_disp_court_rel_io value = "global_variable_map(dmsd_demand_io|local_var:dmsd_disp_d)" }
 		}
 
-		# Diplomatic
+		# Diplo, stab, cult IO refs — same pattern, different registries
 		if = {
 			limit = { is_key_in_global_variable_map = { name = dmsd_diplo_reg1 target = scope:dmsd_disp_sc } }
 			set_local_variable = { name = dmsd_disp_d value = "global_variable_map(dmsd_diplo_reg1|scope:dmsd_disp_sc)" }
@@ -55,7 +73,6 @@ dmsd_slider_demand.1 = {
 		}
 		set_variable = { name = dmsd_disp_diplo_io value = "global_variable_map(dmsd_demand_io|local_var:dmsd_disp_d)" }
 
-		# Stability
 		if = {
 			limit = { is_key_in_global_variable_map = { name = dmsd_stab_reg1 target = scope:dmsd_disp_sc } }
 			set_local_variable = { name = dmsd_disp_d value = "global_variable_map(dmsd_stab_reg1|scope:dmsd_disp_sc)" }
@@ -64,8 +81,11 @@ dmsd_slider_demand.1 = {
 		}
 		set_variable = { name = dmsd_disp_stab_io value = "global_variable_map(dmsd_demand_io|local_var:dmsd_disp_d)" }
 
-		# Raw gold before efficiency decay. Uses inferred slider because
-		# court_maintenance trigger doesn't account for gov power capping.
+		# Court gold calculation.
+		# court_maintenance trigger gives raw slider position (0-1) but doesn't
+		# account for reduced spending when gov power is capped. We use the
+		# inferred effective slider from dmsd_infer_court_slider instead.
+		# Engine clamps the efficiency divisor to min 0.5 (max 2× penalty).
 		set_local_variable = {
 			name = dmsd_gold
 			value = {
@@ -81,7 +101,7 @@ dmsd_slider_demand.1 = {
 				}
 			}
 		}
-		# Per-slider efficiency decay based on raw gold, not economic base
+		# Efficiency decay applied to pre-decay gold — see constants above
 		change_local_variable = {
 			name = dmsd_gold
 			multiply = {
@@ -94,6 +114,9 @@ dmsd_slider_demand.1 = {
 	}
 }
 
+# --- Event .2: Diplomatic spending ---
+# Gold = diplomatic_maintenance × base_rate × eco_base / efficiency_divisor
+# diplomatic_maintenance trigger works correctly here (no capping issue).
 dmsd_slider_demand.2 = {
 	type = country_event
 	title = hidden_event.t
@@ -120,6 +143,9 @@ dmsd_slider_demand.2 = {
 	}
 }
 
+# --- Event .3: Stability spending ---
+# Same structure as court — uses inferred slider because the engine
+# has no stability_maintenance trigger exposed to script.
 dmsd_slider_demand.3 = {
 	type = country_event
 	title = hidden_event.t
@@ -154,16 +180,22 @@ dmsd_slider_demand.3 = {
 	}
 }
 
-# === Phase 1d: Cultural accumulator ===
-
+# --- Event .5: Cultural spending ---
+# Unlike the other sliders, cultural cost comes from artist salaries, not a
+# slider × eco_base formula. The base salary per artist scales with BOTH
+# tax_base AND number of artists (quadratic in N), creating natural
+# diminishing returns on hiring more artists.
+#
+# yearly_salary trigger exists but doesn't include the per-artist N scaling,
+# so we use the known static formula instead:
+#   total = ARTIST_SALARY_BASE_FACTOR × tax_base × N² / 12 × modifiers
+# Country-wide artist_salary_modifier applies uniformly; per-character
+# modifiers (e.g. humble trait = -25%) are averaged across all artists.
 dmsd_slider_demand.5 = {
 	type = country_event
 	title = hidden_event.t
 	hidden = yes
 	immediate = {
-		# Cultural gold from artist salaries.
-		# Formula: total = 0.025 × tax_base × N² / 12 × (1 + salary_modifiers)
-		# Per-character modifiers are averaged across all artists.
 		set_local_variable = { name = dmsd_num_artists value = 0 }
 		set_local_variable = { name = dmsd_char_mod_sum value = 0 }
 		every_artist = {
@@ -189,9 +221,9 @@ dmsd_slider_demand.5 = {
 			}
 		}
 
+		# Stored for tooltip — can't recompute in a script value without every_artist
 		set_variable = { name = dmsd_cult_raw_gold value = local_var:dmsd_gold }
 
-		# Per-slider efficiency decay based on raw gold
 		change_local_variable = {
 			name = dmsd_gold
 			multiply = {
@@ -201,7 +233,6 @@ dmsd_slider_demand.5 = {
 			}
 		}
 
-		# Save display IO ref for GUI
 		capital = { sub_continent = { save_temporary_scope_as = dmsd_disp_sc } }
 		if = {
 			limit = { is_key_in_global_variable_map = { name = dmsd_cult_reg1 target = scope:dmsd_disp_sc } }
@@ -215,7 +246,14 @@ dmsd_slider_demand.5 = {
 	}
 }
 
-# === Phase 2: Market aggregator ===
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 2: MARKET AGGREGATOR
+# ═══════════════════════════════════════════════════════════════════════════════
+# Fires once globally, 1 day after Phase 1. Reads each market center's
+# accumulated gold maps and converts them into actual temporary demands.
+# The apply effects handle removing old demands, computing basket prices,
+# and applying new demands at the correct scale.
 
 dmsd_slider_demand.4 = {
 	type = country_event

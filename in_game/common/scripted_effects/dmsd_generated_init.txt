@@ -197,72 +197,72 @@ dmsd_init_demand_ios = {
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_stab_nas2 value = international_organization:dmsd_io_stab_nas }
 		add_to_global_variable_list = { name = dmsd_all_ios target = international_organization:dmsd_io_stab_nas }
 
-		create_international_organization = { type = international_organization_type:dmsd_io_cultural_demand dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = fine_cloth weight = 0.3 } dmsd_io_good = { good = glass weight = 0.5 } }
+		create_international_organization = { type = international_organization_type:dmsd_io_cultural_demand dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = cloth weight = 0.6 } dmsd_io_good = { good = tools weight = 0.3 } }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cultural_demand1 value = international_organization:dmsd_io_cultural_demand }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cultural_demand2 value = international_organization:dmsd_io_cultural_demand }
 		add_to_global_variable_list = { name = dmsd_all_ios target = international_organization:dmsd_io_cultural_demand }
 
-		create_international_organization = { type = international_organization_type:dmsd_io_cult_we dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = fine_cloth weight = 0.3 } dmsd_io_good = { good = glass weight = 0.5 } dmsd_io_good = { good = marble weight = 0.3 } dmsd_io_good = { good = jewelry weight = 0.3 } }
+		create_international_organization = { type = international_organization_type:dmsd_io_cult_we dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = cloth weight = 0.6 } dmsd_io_good = { good = tools weight = 0.3 } dmsd_io_good = { good = marble weight = 0.36 } dmsd_io_good = { good = jewelry weight = 0.24 } dmsd_io_good = { good = silver weight = 0.225 } }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_we1 value = international_organization:dmsd_io_cult_we }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_we2 value = international_organization:dmsd_io_cult_we }
 		add_to_global_variable_list = { name = dmsd_all_ios target = international_organization:dmsd_io_cult_we }
 
-		create_international_organization = { type = international_organization_type:dmsd_io_cult_ee dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = fine_cloth weight = 0.3 } dmsd_io_good = { good = glass weight = 0.5 } dmsd_io_good = { good = beeswax weight = 0.75 } dmsd_io_good = { good = amber weight = 0.375 } }
+		create_international_organization = { type = international_organization_type:dmsd_io_cult_ee dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = cloth weight = 0.6 } dmsd_io_good = { good = tools weight = 0.3 } dmsd_io_good = { good = beeswax weight = 0.9 } dmsd_io_good = { good = amber weight = 0.375 } dmsd_io_good = { good = fur weight = 0.45 } }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_ee1 value = international_organization:dmsd_io_cult_ee }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_ee2 value = international_organization:dmsd_io_cult_ee }
 		add_to_global_variable_list = { name = dmsd_all_ios target = international_organization:dmsd_io_cult_ee }
 
-		create_international_organization = { type = international_organization_type:dmsd_io_cult_me dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = fine_cloth weight = 0.3 } dmsd_io_good = { good = glass weight = 0.5 } dmsd_io_good = { good = gems weight = 0.375 } dmsd_io_good = { good = silk weight = 0.375 } }
+		create_international_organization = { type = international_organization_type:dmsd_io_cult_me dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = cloth weight = 0.6 } dmsd_io_good = { good = tools weight = 0.3 } dmsd_io_good = { good = gems weight = 0.375 } dmsd_io_good = { good = silk weight = 0.375 } dmsd_io_good = { good = marble weight = 0.18 } }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_me1 value = international_organization:dmsd_io_cult_me }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_me2 value = international_organization:dmsd_io_cult_me }
 		add_to_global_variable_list = { name = dmsd_all_ios target = international_organization:dmsd_io_cult_me }
 
-		create_international_organization = { type = international_organization_type:dmsd_io_cult_ca dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = fine_cloth weight = 0.3 } dmsd_io_good = { good = glass weight = 0.5 } dmsd_io_good = { good = silk weight = 0.375 } dmsd_io_good = { good = wool weight = 0.6 } }
+		create_international_organization = { type = international_organization_type:dmsd_io_cult_ca dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = cloth weight = 0.6 } dmsd_io_good = { good = tools weight = 0.3 } dmsd_io_good = { good = silk weight = 0.45 } dmsd_io_good = { good = wool weight = 0.6 } dmsd_io_good = { good = leather weight = 0.3 } }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_ca1 value = international_organization:dmsd_io_cult_ca }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_ca2 value = international_organization:dmsd_io_cult_ca }
 		add_to_global_variable_list = { name = dmsd_all_ios target = international_organization:dmsd_io_cult_ca }
 
-		create_international_organization = { type = international_organization_type:dmsd_io_cult_sa dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = fine_cloth weight = 0.3 } dmsd_io_good = { good = glass weight = 0.5 } dmsd_io_good = { good = gems weight = 0.375 } dmsd_io_good = { good = cotton weight = 0.5 } }
+		create_international_organization = { type = international_organization_type:dmsd_io_cult_sa dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = cloth weight = 0.6 } dmsd_io_good = { good = tools weight = 0.3 } dmsd_io_good = { good = gems weight = 0.375 } dmsd_io_good = { good = cotton weight = 0.5 } dmsd_io_good = { good = incense weight = 0.36 } }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_sa1 value = international_organization:dmsd_io_cult_sa }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_sa2 value = international_organization:dmsd_io_cult_sa }
 		add_to_global_variable_list = { name = dmsd_all_ios target = international_organization:dmsd_io_cult_sa }
 
-		create_international_organization = { type = international_organization_type:dmsd_io_cult_sea dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = fine_cloth weight = 0.3 } dmsd_io_good = { good = glass weight = 0.5 } dmsd_io_good = { good = lacquerware weight = 0.3 } dmsd_io_good = { good = silk weight = 0.375 } }
+		create_international_organization = { type = international_organization_type:dmsd_io_cult_sea dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = cloth weight = 0.6 } dmsd_io_good = { good = tools weight = 0.3 } dmsd_io_good = { good = lacquerware weight = 0.36 } dmsd_io_good = { good = silk weight = 0.3 } dmsd_io_good = { good = cotton weight = 0.3 } }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_sea1 value = international_organization:dmsd_io_cult_sea }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_sea2 value = international_organization:dmsd_io_cult_sea }
 		add_to_global_variable_list = { name = dmsd_all_ios target = international_organization:dmsd_io_cult_sea }
 
-		create_international_organization = { type = international_organization_type:dmsd_io_cult_ea dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = fine_cloth weight = 0.3 } dmsd_io_good = { good = glass weight = 0.5 } dmsd_io_good = { good = porcelain weight = 0.5 } dmsd_io_good = { good = lacquerware weight = 0.3 } }
+		create_international_organization = { type = international_organization_type:dmsd_io_cult_ea dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = cloth weight = 0.6 } dmsd_io_good = { good = tools weight = 0.3 } dmsd_io_good = { good = porcelain weight = 0.6 } dmsd_io_good = { good = lacquerware weight = 0.3 } dmsd_io_good = { good = silk weight = 0.225 } }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_ea1 value = international_organization:dmsd_io_cult_ea }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_ea2 value = international_organization:dmsd_io_cult_ea }
 		add_to_global_variable_list = { name = dmsd_all_ios target = international_organization:dmsd_io_cult_ea }
 
-		create_international_organization = { type = international_organization_type:dmsd_io_cult_naf dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = fine_cloth weight = 0.3 } dmsd_io_good = { good = glass weight = 0.5 } dmsd_io_good = { good = marble weight = 0.3 } dmsd_io_good = { good = leather weight = 0.5 } }
+		create_international_organization = { type = international_organization_type:dmsd_io_cult_naf dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = cloth weight = 0.6 } dmsd_io_good = { good = tools weight = 0.3 } dmsd_io_good = { good = marble weight = 0.3 } dmsd_io_good = { good = leather weight = 0.5 } dmsd_io_good = { good = salt weight = 0.225 } }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_naf1 value = international_organization:dmsd_io_cult_naf }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_naf2 value = international_organization:dmsd_io_cult_naf }
 		add_to_global_variable_list = { name = dmsd_all_ios target = international_organization:dmsd_io_cult_naf }
 
-		create_international_organization = { type = international_organization_type:dmsd_io_cult_af dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = fine_cloth weight = 0.3 } dmsd_io_good = { good = glass weight = 0.5 } dmsd_io_good = { good = ivory weight = 0.375 } dmsd_io_good = { good = leather weight = 0.5 } }
+		create_international_organization = { type = international_organization_type:dmsd_io_cult_af dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = cloth weight = 0.6 } dmsd_io_good = { good = tools weight = 0.3 } dmsd_io_good = { good = ivory weight = 0.45 } dmsd_io_good = { good = leather weight = 0.4 } dmsd_io_good = { good = cotton weight = 0.3 } }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_af1 value = international_organization:dmsd_io_cult_af }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_af2 value = international_organization:dmsd_io_cult_af }
 		add_to_global_variable_list = { name = dmsd_all_ios target = international_organization:dmsd_io_cult_af }
 
-		create_international_organization = { type = international_organization_type:dmsd_io_cult_eaf dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = fine_cloth weight = 0.3 } dmsd_io_good = { good = glass weight = 0.5 } dmsd_io_good = { good = ivory weight = 0.375 } dmsd_io_good = { good = leather weight = 0.5 } }
+		create_international_organization = { type = international_organization_type:dmsd_io_cult_eaf dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = cloth weight = 0.6 } dmsd_io_good = { good = tools weight = 0.3 } dmsd_io_good = { good = ivory weight = 0.375 } dmsd_io_good = { good = incense weight = 0.48 } dmsd_io_good = { good = leather weight = 0.3 } }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_eaf1 value = international_organization:dmsd_io_cult_eaf }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_eaf2 value = international_organization:dmsd_io_cult_eaf }
 		add_to_global_variable_list = { name = dmsd_all_ios target = international_organization:dmsd_io_cult_eaf }
 
-		create_international_organization = { type = international_organization_type:dmsd_io_cult_nam dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = fine_cloth weight = 0.3 } dmsd_io_good = { good = glass weight = 0.5 } dmsd_io_good = { good = leather weight = 0.5 } dmsd_io_good = { good = fur weight = 0.75 } }
+		create_international_organization = { type = international_organization_type:dmsd_io_cult_nam dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = cloth weight = 0.6 } dmsd_io_good = { good = tools weight = 0.3 } dmsd_io_good = { good = leather weight = 0.5 } dmsd_io_good = { good = fur weight = 0.75 } dmsd_io_good = { good = beeswax weight = 0.45 } }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_nam1 value = international_organization:dmsd_io_cult_nam }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_nam2 value = international_organization:dmsd_io_cult_nam }
 		add_to_global_variable_list = { name = dmsd_all_ios target = international_organization:dmsd_io_cult_nam }
 
-		create_international_organization = { type = international_organization_type:dmsd_io_cult_sam dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = fine_cloth weight = 0.3 } dmsd_io_good = { good = glass weight = 0.5 } dmsd_io_good = { good = gems weight = 0.375 } dmsd_io_good = { good = cotton weight = 0.5 } }
+		create_international_organization = { type = international_organization_type:dmsd_io_cult_sam dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = cloth weight = 0.6 } dmsd_io_good = { good = tools weight = 0.3 } dmsd_io_good = { good = gems weight = 0.45 } dmsd_io_good = { good = cotton weight = 0.4 } dmsd_io_good = { good = silver weight = 0.225 } }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_sam1 value = international_organization:dmsd_io_cult_sam }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_sam2 value = international_organization:dmsd_io_cult_sam }
 		add_to_global_variable_list = { name = dmsd_all_ios target = international_organization:dmsd_io_cult_sam }
 
-		create_international_organization = { type = international_organization_type:dmsd_io_cult_nas dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = fine_cloth weight = 0.3 } dmsd_io_good = { good = glass weight = 0.5 } dmsd_io_good = { good = ivory weight = 0.375 } dmsd_io_good = { good = fur weight = 0.75 } }
+		create_international_organization = { type = international_organization_type:dmsd_io_cult_nas dmsd_io_good = { good = paper weight = 1.5 } dmsd_io_good = { good = dyes weight = 0.75 } dmsd_io_good = { good = cloth weight = 0.6 } dmsd_io_good = { good = tools weight = 0.3 } dmsd_io_good = { good = ivory weight = 0.375 } dmsd_io_good = { good = fur weight = 0.75 } dmsd_io_good = { good = wool weight = 0.36 } }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_nas1 value = international_organization:dmsd_io_cult_nas }
 		add_to_global_variable_map = { name = dmsd_demand_io key = demand:dmsd_cult_nas2 value = international_organization:dmsd_io_cult_nas }
 		add_to_global_variable_list = { name = dmsd_all_ios target = international_organization:dmsd_io_cult_nas }

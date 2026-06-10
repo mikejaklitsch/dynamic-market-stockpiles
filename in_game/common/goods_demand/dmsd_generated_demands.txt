@@ -72,31 +72,31 @@ dmsd_stab_ca1 = { books = 1 cloth = 1 weaponry = 1 tools = 0.5 medicaments = 1.2
 dmsd_stab_ca2 = { books = 1 cloth = 1 weaponry = 1 tools = 0.5 medicaments = 1.2 livestock = 1.4 wool = 0.72 horses = 0.5 category = government_activities }
 dmsd_stab_nas1 = { books = 1 cloth = 1 weaponry = 1 tools = 0.5 medicaments = 1.2 wool = 0.72 fur = 0.75 category = government_activities }
 dmsd_stab_nas2 = { books = 1 cloth = 1 weaponry = 1 tools = 0.5 medicaments = 1.2 wool = 0.72 fur = 0.75 category = government_activities }
-dmsd_cultural_demand1 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 category = government_activities }
-dmsd_cultural_demand2 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 category = government_activities }
-dmsd_cult_we1 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 marble = 0.3 jewelry = 0.3 category = government_activities }
-dmsd_cult_we2 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 marble = 0.3 jewelry = 0.3 category = government_activities }
-dmsd_cult_ee1 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 beeswax = 0.75 amber = 0.375 category = government_activities }
-dmsd_cult_ee2 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 beeswax = 0.75 amber = 0.375 category = government_activities }
-dmsd_cult_me1 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 gems = 0.375 silk = 0.375 category = government_activities }
-dmsd_cult_me2 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 gems = 0.375 silk = 0.375 category = government_activities }
-dmsd_cult_ca1 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 silk = 0.375 wool = 0.6 category = government_activities }
-dmsd_cult_ca2 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 silk = 0.375 wool = 0.6 category = government_activities }
-dmsd_cult_sa1 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 gems = 0.375 cotton = 0.5 category = government_activities }
-dmsd_cult_sa2 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 gems = 0.375 cotton = 0.5 category = government_activities }
-dmsd_cult_sea1 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 lacquerware = 0.3 silk = 0.375 category = government_activities }
-dmsd_cult_sea2 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 lacquerware = 0.3 silk = 0.375 category = government_activities }
-dmsd_cult_ea1 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 porcelain = 0.5 lacquerware = 0.3 category = government_activities }
-dmsd_cult_ea2 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 porcelain = 0.5 lacquerware = 0.3 category = government_activities }
-dmsd_cult_naf1 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 marble = 0.3 leather = 0.5 category = government_activities }
-dmsd_cult_naf2 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 marble = 0.3 leather = 0.5 category = government_activities }
-dmsd_cult_af1 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 ivory = 0.375 leather = 0.5 category = government_activities }
-dmsd_cult_af2 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 ivory = 0.375 leather = 0.5 category = government_activities }
-dmsd_cult_eaf1 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 ivory = 0.375 leather = 0.5 category = government_activities }
-dmsd_cult_eaf2 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 ivory = 0.375 leather = 0.5 category = government_activities }
-dmsd_cult_nam1 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 leather = 0.5 fur = 0.75 category = government_activities }
-dmsd_cult_nam2 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 leather = 0.5 fur = 0.75 category = government_activities }
-dmsd_cult_sam1 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 gems = 0.375 cotton = 0.5 category = government_activities }
-dmsd_cult_sam2 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 gems = 0.375 cotton = 0.5 category = government_activities }
-dmsd_cult_nas1 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 ivory = 0.375 fur = 0.75 category = government_activities }
-dmsd_cult_nas2 = { paper = 1.5 dyes = 0.75 fine_cloth = 0.3 glass = 0.5 ivory = 0.375 fur = 0.75 category = government_activities }
+dmsd_cultural_demand1 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 category = government_activities }
+dmsd_cultural_demand2 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 category = government_activities }
+dmsd_cult_we1 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 marble = 0.36 jewelry = 0.24 silver = 0.225 category = government_activities }
+dmsd_cult_we2 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 marble = 0.36 jewelry = 0.24 silver = 0.225 category = government_activities }
+dmsd_cult_ee1 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 beeswax = 0.9 amber = 0.375 fur = 0.45 category = government_activities }
+dmsd_cult_ee2 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 beeswax = 0.9 amber = 0.375 fur = 0.45 category = government_activities }
+dmsd_cult_me1 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 gems = 0.375 silk = 0.375 marble = 0.18 category = government_activities }
+dmsd_cult_me2 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 gems = 0.375 silk = 0.375 marble = 0.18 category = government_activities }
+dmsd_cult_ca1 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 silk = 0.45 wool = 0.6 leather = 0.3 category = government_activities }
+dmsd_cult_ca2 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 silk = 0.45 wool = 0.6 leather = 0.3 category = government_activities }
+dmsd_cult_sa1 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 gems = 0.375 cotton = 0.5 incense = 0.36 category = government_activities }
+dmsd_cult_sa2 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 gems = 0.375 cotton = 0.5 incense = 0.36 category = government_activities }
+dmsd_cult_sea1 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 lacquerware = 0.36 silk = 0.3 cotton = 0.3 category = government_activities }
+dmsd_cult_sea2 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 lacquerware = 0.36 silk = 0.3 cotton = 0.3 category = government_activities }
+dmsd_cult_ea1 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 porcelain = 0.6 lacquerware = 0.3 silk = 0.225 category = government_activities }
+dmsd_cult_ea2 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 porcelain = 0.6 lacquerware = 0.3 silk = 0.225 category = government_activities }
+dmsd_cult_naf1 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 marble = 0.3 leather = 0.5 salt = 0.225 category = government_activities }
+dmsd_cult_naf2 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 marble = 0.3 leather = 0.5 salt = 0.225 category = government_activities }
+dmsd_cult_af1 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 ivory = 0.45 leather = 0.4 cotton = 0.3 category = government_activities }
+dmsd_cult_af2 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 ivory = 0.45 leather = 0.4 cotton = 0.3 category = government_activities }
+dmsd_cult_eaf1 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 ivory = 0.375 incense = 0.48 leather = 0.3 category = government_activities }
+dmsd_cult_eaf2 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 ivory = 0.375 incense = 0.48 leather = 0.3 category = government_activities }
+dmsd_cult_nam1 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 leather = 0.5 fur = 0.75 beeswax = 0.45 category = government_activities }
+dmsd_cult_nam2 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 leather = 0.5 fur = 0.75 beeswax = 0.45 category = government_activities }
+dmsd_cult_sam1 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 gems = 0.45 cotton = 0.4 silver = 0.225 category = government_activities }
+dmsd_cult_sam2 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 gems = 0.45 cotton = 0.4 silver = 0.225 category = government_activities }
+dmsd_cult_nas1 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 ivory = 0.375 fur = 0.75 wool = 0.36 category = government_activities }
+dmsd_cult_nas2 = { paper = 1.5 dyes = 0.75 cloth = 0.6 tools = 0.3 ivory = 0.375 fur = 0.75 wool = 0.36 category = government_activities }
