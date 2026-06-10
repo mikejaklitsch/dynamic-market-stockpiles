@@ -1,0 +1,176 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# STOCKPILE CAPACITY TOOLTIP OVERRIDE
+# ═══════════════════════════════════════════════════════════════════════════════
+# Replaces market_stockpile_capacity template to append a
+# "Dynamic Scaling" breakdown below the standard modifier list.
+#
+# File prefixed aaa_ to win first-definition-wins template precedence.
+#
+# Scope: Market (accessed via Market.GetCenterLocation for location data)
+#
+# Shows:
+#   1. Vanilla modifier breakdown (unchanged)
+#   2. Market traded value  (gold)
+#   3. Scaling percentage   (derived from traded value / 2500 - 1)
+#   4. Resulting adjustment (flat capacity change)
+#
+# The section is visible ONLY when the dws_stockpile_scaling modifier
+# is present on the market center, preventing stub display on other markets.
+
+template market_stockpile_capacity {
+	ContextualTooltipType = {
+
+		# --- Title icon (base game default) ---
+		blockoverride "title_icon" {
+			icon = {
+				using = tooltip_title_icon_size
+				texture = "gfx/interface/icons/modifier_types/maximum_stockpile_capacity.dds"
+				glow = {
+					name = "drop_shadow"
+					glow_radius = 3
+					color = {0.0 0.0 0.0 1.0}
+					alpha = 0.6
+				}
+			}
+		}
+
+		# --- Title text (base game default) ---
+		blockoverride "title_text" {
+			text = "MAX_STOCKPILE_IN_MARKET_TT_HEADER"
+		}
+
+		# --- Concept link (base game default) ---
+		blockoverride "concept_link" {
+			text = [stockpile|e]
+		}
+
+		# --- Tooltip content ---
+		blockoverride "tooltip_content" {
+
+			# Vanilla modifier breakdown — shows all sources of maximum_stockpile_capacity
+			TooltipStringPairList = {
+				blockoverride "block_title" {
+					text = "MAX_STOCKPILE_IN_MARKET_TT_LIST"
+				}
+				textcontext = "[Market.GetCenterLocation.GetDescriptionFor('maximum_stockpile_capacity')]"
+			}
+
+			# ─── Dynamic Scaling breakdown (only when our modifier is active) ───
+			# Visible gate: script value returns 1 when dws_stockpile_scaling is
+			# present on the market center, 0 otherwise. MakeScope.Trigger does
+			# not exist in GUI context, so we use a script value workaround.
+			#
+			# The math story reads top to bottom so a reader can follow how
+			# the adjustment is derived from the market's traded value:
+			#   traded value ÷ threshold = ratio → ratio − 1 = scaling % → base × scaling = adjustment
+			TooltipListBase = {
+				visible = "[GreaterThan_CFixedPoint(Market.GetCenterLocation.MakeScope.ScriptValue('dmsd_tt_stockpile_active'), '(CFixedPoint)0')]"
+				max_update_rate = 30
+
+				TooltipTableHeader = {
+					blockoverride "tableheader_text" {
+						raw_text = "#T Dynamic Market Scaling#!"
+					}
+				}
+
+				# Step 1: Market traded value — the raw input
+				TooltipManualTableField = {
+					blockoverride "field_content" {
+						text_single = {
+							layoutpolicy_horizontal = expanding
+							raw_text = "Market Traded Value"
+						}
+						text_single = {
+							min_width = 100
+							align = right
+							raw_text = "[Market.GetCenterLocation.MakeScope.ScriptValue('dmsd_tt_market_value')|0]@gold!"
+						}
+					}
+				}
+
+				# Step 2: Reference threshold — the divider
+				TooltipManualTableField = {
+					blockoverride "field_content" {
+						text_single = {
+							layoutpolicy_horizontal = expanding
+							raw_text = "÷ Market Value Baseline"
+						}
+						text_single = {
+							min_width = 100
+							align = right
+							raw_text = "[Market.GetCenterLocation.MakeScope.ScriptValue('dmsd_tt_threshold')|0]@gold!"
+						}
+					}
+				}
+
+				# Step 3: Resulting scaling percentage
+				# Combines ratio and baseline subtraction into one line
+				TooltipManualTableField = {
+					blockoverride "field_content" {
+						text_single = {
+							layoutpolicy_horizontal = expanding
+							raw_text = "#bold = Capacity Scaling#!"
+						}
+						text_single = {
+							min_width = 100
+							align = right
+							raw_text = "#bold [Market.GetCenterLocation.MakeScope.ScriptValue('dmsd_tt_stockpile_pct')|1+=]%#!"
+						}
+					}
+				}
+
+				# Spacer header for the application section
+				TooltipTableHeader = {
+					blockoverride "tableheader_text" {
+						raw_text = "#T Applied to Stockpile#!"
+					}
+				}
+
+				# Step 6: Base capacity before our modifier
+				TooltipManualTableField = {
+					blockoverride "field_content" {
+						text_single = {
+							layoutpolicy_horizontal = expanding
+							raw_text = "Base Capacity"
+						}
+						text_single = {
+							min_width = 100
+							align = right
+							raw_text = "[Market.GetCenterLocation.MakeScope.ScriptValue('dmsd_tt_stockpile_base')|0]"
+						}
+					}
+				}
+
+				# Step 7: Multiply by scaling percentage
+				TooltipManualTableField = {
+					blockoverride "field_content" {
+						text_single = {
+							layoutpolicy_horizontal = expanding
+							raw_text = "× Capacity Scaling"
+						}
+						text_single = {
+							min_width = 100
+							align = right
+							raw_text = "[Market.GetCenterLocation.MakeScope.ScriptValue('dmsd_tt_stockpile_pct')|1+=]%"
+						}
+					}
+				}
+
+				# Step 8: Final adjustment — this is what the modifier adds/removes
+				TooltipManualTableField = {
+					blockoverride "field_content" {
+						text_single = {
+							layoutpolicy_horizontal = expanding
+							raw_text = "#bold = Stockpile Adjustment#!"
+						}
+						text_single = {
+							min_width = 100
+							align = right
+							raw_text = "#bold [Market.GetCenterLocation.MakeScope.ScriptValue('dmsd_tt_stockpile_adj')|0+=]#!"
+						}
+					}
+				}
+			}
+		}
+	}
+}

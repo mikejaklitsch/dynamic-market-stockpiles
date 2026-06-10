@@ -1,0 +1,8 @@
+﻿# Variable map set (remove then add).
+# add_to_variable_map silently fails on existing keys.
+# This removes first so the add always succeeds.
+# Usage: dmsd_set_variable_map = { name = map_name key = key_expr value = value_expr }
+dmsd_set_variable_map = {
+	remove_from_variable_map = { name = $name$ key = $key$ }
+	add_to_variable_map = { name = $name$ key = $key$ value = $value$ }
+}

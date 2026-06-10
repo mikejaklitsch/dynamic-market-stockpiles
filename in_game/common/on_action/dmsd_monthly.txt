@@ -1,0 +1,203 @@
+﻿
+on_game_start = {
+	on_actions = {
+		dmsd_update_stockpile_scaling
+		dmsd_init_check
+	}
+}
+
+weather_monthly_pulse = {
+	on_actions = {
+		dmsd_update_stockpile_scaling
+		dmsd_init_check
+		dmsd_swap_toggle
+		dmsd_cleanup_orphans
+		dmsd_phase2_kickstart
+	}
+}
+
+monthly_country_pulse = {
+	on_actions = {
+		dmsd_prox_cache_player
+		dmsd_monthly_pulse
+	}
+}
+
+yearly_country_pulse = {
+	on_actions = {
+		dmsd_prox_cache_ai
+	}
+}
+
+on_capital_moved = {
+	on_actions = {
+		dmsd_prox_cache_on_capital
+	}
+}
+
+dmsd_prox_cache_player = {
+	trigger = { is_ai = no NOT = { has_game_rule = dmsd_slider_demand_disabled } }
+	effect = { dmsd_rebuild_prox_cache = yes }
+}
+
+dmsd_prox_cache_ai = {
+	trigger = { is_ai = yes is_real_country = yes NOT = { has_game_rule = dmsd_slider_demand_disabled } }
+	effect = { dmsd_rebuild_prox_cache = yes }
+}
+
+dmsd_prox_cache_on_capital = {
+	trigger = { NOT = { has_game_rule = dmsd_slider_demand_disabled } }
+	effect = { dmsd_rebuild_prox_cache = yes }
+}
+
+# ═══════════════════════════════════════════════
+# DYNAMIC STOCKPILE SCALING
+# ═══════════════════════════════════════════════
+
+dmsd_update_stockpile_scaling = {
+	effect = {
+		# Clean up orphaned locations (market center moved)
+		every_in_global_list = {
+			variable = dws_scaled_locations
+			limit = { is_market_center = no }
+			remove_location_modifier = dws_stockpile_scaling
+			remove_variable = dws_last_size
+		}
+
+		clear_global_variable_list = dws_scaled_locations
+
+		if = {
+			limit = { NOT = { has_game_rule = dmsd_stockpiles_disabled } }
+
+			every_market_in_world = {
+				location = {
+					set_local_variable = {
+						name = dws_base
+						value = {
+							value = modifier:maximum_stockpile_capacity
+							if = {
+								limit = { has_variable = dws_last_size has_location_modifier = dws_stockpile_scaling }
+								subtract = var:dws_last_size
+							}
+						}
+					}
+
+					set_variable = {
+						name = dws_last_size
+						value = {
+							value = local_var:dws_base
+
+							multiply = {
+								value = market.total_goods_value_traded
+								divide = 2500
+								subtract = 1
+							}
+
+							min = { value = local_var:dws_base multiply = -0.95 }
+						}
+					}
+
+					add_location_modifier = {
+						modifier = dws_stockpile_scaling
+						years = -1
+						mode = replace
+						size = { value = var:dws_last_size }
+					}
+
+					add_to_global_variable_list = { name = dws_scaled_locations target = this }
+				}
+			}
+		} else = {
+			every_market_in_world = {
+				location = {
+					if = {
+						limit = { has_location_modifier = dws_stockpile_scaling }
+						remove_location_modifier = dws_stockpile_scaling
+						remove_variable = dws_last_size
+					}
+				}
+			}
+		}
+	}
+}
+
+# ═══════════════════════════════════════════════
+# SLIDER DEMAND SYSTEM
+# ═══════════════════════════════════════════════
+
+# Version-checked init: triggers on game start, save load, or mod update.
+# Rebuilds registries and IOs when version is missing or stale.
+dmsd_init_check = {
+	trigger = {
+		NOT = { has_global_variable = dmsd_rebuilding }
+		OR = {
+			has_game_rule = dmsd_slider_demand_disabled
+			NOT = { has_global_variable = dmsd_version }
+			global_var:dmsd_version < dmsd_version_value
+		}
+	}
+	effect = {
+		if = {
+			limit = { has_game_rule = dmsd_slider_demand_disabled }
+			dmsd_full_cleanup = yes
+		} else = {
+			set_global_variable = dmsd_rebuilding
+			dmsd_full_cleanup = yes
+			dmsd_init_demand_registry = yes
+			random_country = {
+				limit = { is_real_country = yes }
+				every_country = { dmsd_rebuild_prox_cache = yes }
+			}
+			remove_global_variable = dmsd_rebuilding
+		}
+	}
+}
+
+dmsd_swap_toggle = {
+	trigger = { NOT = { has_game_rule = dmsd_slider_demand_disabled } }
+	effect = {
+		if = {
+			limit = { has_global_variable = dmsd_swap }
+			remove_global_variable = dmsd_swap
+		} else = {
+			set_global_variable = dmsd_swap
+		}
+	}
+}
+
+dmsd_cleanup_orphans = {
+	effect = {
+		every_in_global_list = {
+			variable = dmsd_active_locations
+			limit = { is_market_center = no }
+			dmsd_strip_location = yes
+		}
+		clear_global_variable_list = dmsd_active_locations
+	}
+}
+
+dmsd_phase2_kickstart = {
+	trigger = {
+		has_global_variable = dmsd_version
+		NOT = { has_game_rule = dmsd_slider_demand_disabled }
+	}
+	effect = {
+		random_country = { trigger_event_silently = { id = dmsd_slider_demand.4 days = 1 } }
+	}
+}
+
+dmsd_monthly_pulse = {
+	trigger = { NOT = { has_game_rule = dmsd_slider_demand_disabled } }
+	effect = {
+		if = {
+			limit = { tag = DLH }
+			error_log = "DMSD monthly_pulse fired for DEL"
+		}
+	}
+	events = {
+		dmsd_slider_demand.1
+		dmsd_slider_demand.2
+		dmsd_slider_demand.3
+		dmsd_slider_demand.5
+	}
+}

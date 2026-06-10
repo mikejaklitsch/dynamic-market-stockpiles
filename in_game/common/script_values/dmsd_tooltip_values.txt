@@ -1,0 +1,242 @@
+﻿# ═══════════════════════════════════════════════════════════════════════════════
+# DMSD TOOLTIP SCRIPT VALUES
+# ═══════════════════════════════════════════════════════════════════════════════
+# Read by the GUI via Country.MakeScope.ScriptValue('name') or
+# Location.MakeScope.ScriptValue('name') to display demand/efficiency data.
+#
+# NAMING CONVENTION:
+#   dmsd_tt_*  = tooltip-only values (tt = tooltip). Not used by gameplay logic.
+#               These exist solely to feed data into GUI tooltip widgets.
+#               Gameplay calculations live in events/dmsd_slider_demand.txt.
+#
+# IMPORTANT: @dmsd_eff_baseline and @dmsd_eff_exponent must stay in sync with
+# the identical constants in events/dmsd_slider_demand.txt. Any change to the
+# efficiency formula must be reflected in both files.
+
+# --- Efficiency decay constants (mirrors events/dmsd_slider_demand.txt) ---
+@dmsd_eff_baseline = 500
+@dmsd_eff_exponent = 0.415
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# COUNTRY-SCOPED VALUES (for spending slider tooltips)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Evaluated from country scope via MaintenanceSetting.GetSettingOwner.
+
+# Raw economic base — the starting input for the efficiency calculation
+dmsd_tt_eco_base = {
+	value = "country_economical_base"
+}
+
+# The baseline threshold below which there is no inefficiency
+dmsd_tt_eff_baseline = { value = @dmsd_eff_baseline }
+
+# Size ratio: eco_base / baseline (how many times larger than baseline)
+dmsd_tt_size_ratio = {
+	value = "country_economical_base"
+	min = @dmsd_eff_baseline
+	divide = @dmsd_eff_baseline
+}
+
+# Efficiency multiplier: (baseline / max(baseline, eco_base)) ^ exponent
+# Result is 0.0–1.0. At baseline: 1.0. Each doubling loses ~25%.
+dmsd_tt_efficiency = {
+	value = @dmsd_eff_baseline
+	divide = { value = "country_economical_base" min = @dmsd_eff_baseline }
+	pow = @dmsd_eff_exponent
+}
+
+# --- Doublings past baseline ---
+# Number of times the economy has doubled past the efficiency baseline.
+# Computed by counting how many 0.75^N thresholds efficiency falls below
+# (integer part), then linear-interpolating the fraction.
+# PDX script has no log function, so this is the workaround.
+
+# Integer doublings: count 0.75^N thresholds that efficiency is below.
+# 0.75^1=0.75, 0.75^2=0.5625, 0.75^3≈0.4219, 0.75^4≈0.3164,
+# 0.75^5≈0.2373, 0.75^6≈0.1780, 0.75^7≈0.1335, 0.75^8≈0.1001,
+# 0.75^9≈0.0751, 0.75^10≈0.0563
+dmsd_tt_dbl_floor = {
+	value = 0
+	if = { limit = { dmsd_tt_efficiency < 0.75 } add = 1 }
+	if = { limit = { dmsd_tt_efficiency < 0.5625 } add = 1 }
+	if = { limit = { dmsd_tt_efficiency < 0.421875 } add = 1 }
+	if = { limit = { dmsd_tt_efficiency < 0.31640625 } add = 1 }
+	if = { limit = { dmsd_tt_efficiency < 0.237304688 } add = 1 }
+	if = { limit = { dmsd_tt_efficiency < 0.177978516 } add = 1 }
+	if = { limit = { dmsd_tt_efficiency < 0.133483887 } add = 1 }
+	if = { limit = { dmsd_tt_efficiency < 0.100112915 } add = 1 }
+	if = { limit = { dmsd_tt_efficiency < 0.075084686 } add = 1 }
+	if = { limit = { dmsd_tt_efficiency < 0.056313515 } add = 1 }
+}
+
+# Efficiency at floor: 0.75 ^ floor_doublings
+dmsd_tt_dbl_floor_eff = {
+	value = 0.75
+	pow = dmsd_tt_dbl_floor
+}
+
+# Fractional doubling via linear interpolation:
+# remaining = efficiency / 0.75^floor (ranges from 1.0 down toward 0.75)
+# fraction ≈ (1 - remaining) / 0.25
+dmsd_tt_dbl_frac = {
+	value = 1
+	subtract = { value = dmsd_tt_efficiency divide = dmsd_tt_dbl_floor_eff }
+	divide = 0.25
+	min = 0
+	max = 1
+}
+
+# Total doublings past baseline
+dmsd_tt_doublings = {
+	value = dmsd_tt_dbl_floor
+	add = dmsd_tt_dbl_frac
+}
+
+# Efficiency as a percentage (0–100) for display
+dmsd_tt_efficiency_pct = {
+	value = dmsd_tt_efficiency
+	multiply = 100
+}
+
+# Demand lost to inefficiency as a percentage
+dmsd_tt_inefficiency_pct = {
+	value = 100
+	subtract = dmsd_tt_efficiency_pct
+}
+
+# --- Per-slider raw gold (before efficiency) ---
+# These mirror the gold calculation in the Phase 1 events, WITHOUT efficiency.
+
+# Court and stability use inferred slider values (stored as country variables)
+# because the engine doesn't expose the actual spending amount to script.
+# Diplomatic uses the trigger directly since it works correctly.
+
+# Engine clamps the efficiency divisor to min 0.5 (max 2× cost penalty).
+dmsd_tt_court_raw = {
+	value = 0
+	if = {
+		limit = { has_variable = dmsd_court_slider }
+		add = {
+			value = var:dmsd_court_slider
+			multiply = 0.1
+			multiply = "country_economical_base"
+			divide = { value = 1 add = "modifier:court_spending_efficiency" min = 0.5 }
+		}
+	}
+}
+
+dmsd_tt_diplo_raw = {
+	value = "diplomatic_maintenance"
+	multiply = "modifier:diplomatic_spending_cost"
+	multiply = "country_economical_base"
+	divide = { value = 1 add = "modifier:diplomatic_upkeep_efficiency" min = 0.5 }
+}
+
+# Stability per-unit values for GUI multiplication with the actual slider.
+# The GUI multiplies these by CEconomy.GetStabilityInvestmentValue since
+# the slider position is only accessible from GUI, not script.
+dmsd_tt_stab_base_per_unit = {
+	value = 0.1
+	multiply = "country_economical_base"
+	divide = { value = 1 add = "modifier:stability_cost_efficiency" min = 0.5 }
+}
+
+dmsd_tt_stab_eff_per_unit = {
+	value = dmsd_tt_stab_base_per_unit
+	multiply = dmsd_tt_efficiency
+}
+
+# Inferred-slider versions for script contexts (e.g. demand calculation)
+dmsd_tt_stab_raw = {
+	value = 0
+	if = {
+		limit = { has_variable = dmsd_stab_slider }
+		add = {
+			value = var:dmsd_stab_slider
+			multiply = dmsd_tt_stab_base_per_unit
+		}
+	}
+}
+
+# --- Per-slider effective gold (after efficiency) ---
+
+dmsd_tt_court_eff = {
+	value = dmsd_tt_court_raw
+	multiply = dmsd_tt_efficiency
+}
+
+dmsd_tt_diplo_eff = {
+	value = dmsd_tt_diplo_raw
+	multiply = dmsd_tt_efficiency
+}
+
+dmsd_tt_stab_eff = {
+	value = dmsd_tt_stab_raw
+	multiply = dmsd_tt_efficiency
+}
+
+# Cultural uses artist salaries — can't sum yearly_salary in a script value,
+# so the GUI uses MaintenanceSetting.GetExpense for the live total.
+# No dmsd_tt_cult_raw/eff needed.
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOCATION-SCOPED VALUES (for stockpile capacity tooltip)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Evaluated from market center location scope.
+
+# Total goods value traded in this location's market
+dmsd_tt_market_value = {
+	value = market.total_goods_value_traded
+}
+
+# The reference threshold — markets trading above this are above baseline
+dmsd_tt_threshold = { value = 2500 }
+
+# Market ratio: traded_value / threshold (e.g. 0.19 for a small market)
+dmsd_tt_market_ratio = {
+	value = market.total_goods_value_traded
+	divide = 2500
+}
+
+# Scaling factor: ratio - 1 (negative = below baseline, positive = above)
+# Clamped to min -0.95 so capacity never drops below 5%.
+dmsd_tt_scale_factor = {
+	value = market.total_goods_value_traded
+	divide = 2500
+	subtract = 1
+	min = -0.95
+}
+
+# Scaling as a percentage for display
+dmsd_tt_stockpile_pct = {
+	value = dmsd_tt_scale_factor
+	multiply = 100
+}
+
+# The base capacity BEFORE our modifier (undo dws_last_size if present)
+dmsd_tt_stockpile_base = {
+	value = modifier:maximum_stockpile_capacity
+	if = {
+		limit = { has_variable = dws_last_size has_location_modifier = dws_stockpile_scaling }
+		subtract = var:dws_last_size
+	}
+}
+
+# Our modifier's flat adjustment value (base × scaling factor)
+dmsd_tt_stockpile_adj = {
+	value = 0
+	if = {
+		limit = { has_variable = dws_last_size }
+		add = var:dws_last_size
+	}
+}
+
+# 1 if our modifier is active on this location, 0 otherwise.
+# Used for GUI visibility gates (MakeScope.Trigger is not available in GUI).
+dmsd_tt_stockpile_active = {
+	value = 0
+	if = {
+		limit = { has_location_modifier = dws_stockpile_scaling }
+		add = 1
+	}
+}
