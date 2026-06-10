@@ -3,27 +3,55 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 # Entry points for both the stockpile scaling and slider demand systems.
 #
-# Monthly execution order:
-#   1. weather_monthly_pulse (global): stockpile scaling, version check,
-#      swap toggle, orphan cleanup, Phase 2 kickstart (fires event .4 +1 day)
-#   2. monthly_country_pulse (per-country): prox cache rebuild (player),
-#      Phase 1 events (.1-.3, .5) — gold computation + accumulation
-#   3. Phase 2 event .4 fires the next day, applying accumulated demand
+# EXECUTION ORDER (within one month):
+#   weather_monthly_pulse fires FIRST (global scope, once):
+#     1. Stockpile scaling — adjusts market capacity modifiers
+#     2. Init check — detects rule disable, version mismatch, or first run;
+#        runs cleanup or full reinit as needed
+#     3. Phase 2 apply — reads LAST month's accumulated maps, applies demands
+#     4. Swap toggle — alternates demand type pair for next month
+#     5. Orphan cleanup — strips demands from locations no longer market centers
+#
+#   monthly_country_pulse fires SECOND (per-country scope):
+#     6. Prox cache rebuild (player only, AI yearly)
+#     7. Phase 1 events (.1-.3, .5) — gold computation + accumulation into
+#        market location maps, read by NEXT month's Phase 2
+#
+# GAME RULE GATING:
+#   - Every slider-demand codepath checks has_game_rule = dmsd_slider_demand_disabled
+#   - When disabled mid-game: init_check runs cleanup once, sets dmsd_disabled
+#     sentinel, then idles. No further work runs while disabled.
+#   - When re-enabled: dmsd_version is missing (cleanup removed it), so init_check
+#     triggers reinit, clears dmsd_disabled, and the system resumes.
+#
+# Step implementations are in common/scripted_effects/dmsd_monthly_steps.txt.
 
 on_game_start = {
 	on_actions = {
-		dmsd_update_stockpile_scaling
-		dmsd_init_check
+		dmsd_on_game_start
 	}
 }
 
 weather_monthly_pulse = {
 	on_actions = {
-		dmsd_update_stockpile_scaling
-		dmsd_init_check
-		dmsd_swap_toggle
-		dmsd_cleanup_orphans
-		dmsd_phase2_kickstart
+		dmsd_weather_monthly
+	}
+}
+
+dmsd_on_game_start = {
+	effect = {
+		dmsd_update_stockpile_scaling = yes
+		dmsd_init_check_effect = yes
+	}
+}
+
+dmsd_weather_monthly = {
+	effect = {
+		dmsd_update_stockpile_scaling = yes
+		dmsd_init_check_effect = yes
+		dmsd_phase2_apply_effect = yes
+		dmsd_swap_toggle_effect = yes
+		dmsd_cleanup_orphans_effect = yes
 	}
 }
 
@@ -46,6 +74,10 @@ on_capital_moved = {
 	}
 }
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# PER-COUNTRY ON-ACTIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
 dmsd_prox_cache_player = {
 	trigger = { is_ai = no NOT = { has_game_rule = dmsd_slider_demand_disabled } }
 	effect = { dmsd_rebuild_prox_cache = yes }
@@ -59,153 +91,6 @@ dmsd_prox_cache_ai = {
 dmsd_prox_cache_on_capital = {
 	trigger = { NOT = { has_game_rule = dmsd_slider_demand_disabled } }
 	effect = { dmsd_rebuild_prox_cache = yes }
-}
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# DYNAMIC STOCKPILE SCALING
-# ═══════════════════════════════════════════════════════════════════════════════
-# Adjusts market stockpile capacity based on total goods value traded.
-# Markets trading above the 2500 threshold get bonus capacity; below get reduced.
-# Clamped to -95% so capacity never drops below 5% of base.
-# Uses dws_ prefix variables (legacy — persisted in existing saves).
-
-dmsd_update_stockpile_scaling = {
-	effect = {
-		# Clean up orphaned locations (market center moved)
-		every_in_global_list = {
-			variable = dws_scaled_locations
-			limit = { is_market_center = no }
-			remove_location_modifier = dws_stockpile_scaling
-			remove_variable = dws_last_size
-		}
-
-		clear_global_variable_list = dws_scaled_locations
-
-		if = {
-			limit = { NOT = { has_game_rule = dmsd_stockpiles_disabled } }
-
-			every_market_in_world = {
-				location = {
-					set_local_variable = {
-						name = dws_base
-						value = {
-							value = modifier:maximum_stockpile_capacity
-							if = {
-								limit = { has_variable = dws_last_size has_location_modifier = dws_stockpile_scaling }
-								subtract = var:dws_last_size
-							}
-						}
-					}
-
-					set_variable = {
-						name = dws_last_size
-						value = {
-							value = local_var:dws_base
-
-							multiply = {
-								value = market.total_goods_value_traded
-								divide = 2500
-								subtract = 1
-							}
-
-							min = { value = local_var:dws_base multiply = -0.95 }
-						}
-					}
-
-					add_location_modifier = {
-						modifier = dws_stockpile_scaling
-						years = -1
-						mode = replace
-						size = { value = var:dws_last_size }
-					}
-
-					add_to_global_variable_list = { name = dws_scaled_locations target = this }
-				}
-			}
-		} else = {
-			every_market_in_world = {
-				location = {
-					if = {
-						limit = { has_location_modifier = dws_stockpile_scaling }
-						remove_location_modifier = dws_stockpile_scaling
-						remove_variable = dws_last_size
-					}
-				}
-			}
-		}
-	}
-}
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# SLIDER DEMAND SYSTEM
-# ═══════════════════════════════════════════════════════════════════════════════
-
-# Version-checked init: triggers on game start, save load, or mod update.
-# Rebuilds demand registries (subcontinent→demand type mappings),
-# IO weight containers, and proximity caches for all countries.
-# Version bump in dmsd_version.txt forces reinit on next load.
-dmsd_init_check = {
-	trigger = {
-		NOT = { has_global_variable = dmsd_rebuilding }
-		OR = {
-			has_game_rule = dmsd_slider_demand_disabled
-			NOT = { has_global_variable = dmsd_version }
-			global_var:dmsd_version < dmsd_version_value
-		}
-	}
-	effect = {
-		if = {
-			limit = { has_game_rule = dmsd_slider_demand_disabled }
-			dmsd_full_cleanup = yes
-		} else = {
-			set_global_variable = dmsd_rebuilding
-			dmsd_full_cleanup = yes
-			dmsd_init_demand_registry = yes
-			random_country = {
-				limit = { is_real_country = yes }
-				every_country = { dmsd_rebuild_prox_cache = yes }
-			}
-			remove_global_variable = dmsd_rebuilding
-		}
-	}
-}
-
-# Each demand type has a twin (e.g. dmsd_court_we1/dmsd_court_we2).
-# We alternate between them monthly because add_temporary_demand can't
-# update an existing demand's scale — you have to remove and re-add.
-# The swap ensures the old demand is a different type from the new one,
-# so remove + add happen cleanly without race conditions.
-dmsd_swap_toggle = {
-	trigger = { NOT = { has_game_rule = dmsd_slider_demand_disabled } }
-	effect = {
-		if = {
-			limit = { has_global_variable = dmsd_swap }
-			remove_global_variable = dmsd_swap
-		} else = {
-			set_global_variable = dmsd_swap
-		}
-	}
-}
-
-dmsd_cleanup_orphans = {
-	effect = {
-		every_in_global_list = {
-			variable = dmsd_active_locations
-			limit = { is_market_center = no }
-			dmsd_strip_location = yes
-		}
-		clear_global_variable_list = dmsd_active_locations
-	}
-}
-
-dmsd_phase2_kickstart = {
-	trigger = {
-		has_global_variable = dmsd_version
-		NOT = { has_game_rule = dmsd_slider_demand_disabled }
-	}
-	effect = {
-		random_country = { trigger_event_silently = { id = dmsd_slider_demand.4 days = 1 } }
-	}
 }
 
 dmsd_monthly_pulse = {

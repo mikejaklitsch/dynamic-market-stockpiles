@@ -3,18 +3,12 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 # SLIDER DEMAND EVENTS
 # ═══════════════════════════════════════════════════════════════════════════════
-# Two-phase monthly cycle converting slider spending into market demand.
-#
-# Phase 1 (events .1-.3, .5): fires per-country via monthly_country_pulse.
-#   Each slider computes its gold, applies efficiency decay, then distributes
-#   across proximity sources into market location maps.
-#
-# Phase 2 (event .4): fires once globally via weather_monthly_pulse + 1 day.
-#   Reads each market's accumulated gold maps, converts to demand scale
-#   (gold / basket_price), and applies add_temporary_demand.
-#
-# The 1-day offset between phases ensures all countries finish Phase 1
-# before any market reads the maps in Phase 2.
+# Phase 1 of the monthly demand cycle. Fires per-country via
+# monthly_country_pulse. Each slider computes its gold, applies
+# efficiency decay, then distributes across proximity sources into
+# market location maps. Phase 2 runs later the same month in
+# weather_monthly_pulse (which fires after all countries are handled),
+# reading the freshly populated maps and applying market demands.
 
 # --- Per-slider efficiency decay ---
 # Diminishing returns on heavy spending. Each doubling of raw gold past
@@ -37,6 +31,7 @@ dmsd_slider_demand.1 = {
 	title = hidden_event.t
 	hidden = yes
 	immediate = {
+
 		if = {
 			limit = { NOT = { has_variable_list = dmsd_prox_sources } }
 			dmsd_rebuild_prox_cache = yes
@@ -122,6 +117,7 @@ dmsd_slider_demand.2 = {
 	title = hidden_event.t
 	hidden = yes
 	immediate = {
+
 		set_local_variable = {
 			name = dmsd_gold
 			value = {
@@ -151,6 +147,7 @@ dmsd_slider_demand.3 = {
 	title = hidden_event.t
 	hidden = yes
 	immediate = {
+
 		dmsd_infer_stab_slider = yes
 
 		set_local_variable = {
@@ -196,6 +193,7 @@ dmsd_slider_demand.5 = {
 	title = hidden_event.t
 	hidden = yes
 	immediate = {
+
 		set_local_variable = { name = dmsd_num_artists value = 0 }
 		set_local_variable = { name = dmsd_char_mod_sum value = 0 }
 		every_artist = {
@@ -243,32 +241,5 @@ dmsd_slider_demand.5 = {
 		set_variable = { name = dmsd_disp_cult_io value = "global_variable_map(dmsd_demand_io|local_var:dmsd_disp_d)" }
 
 		dmsd_accumulate_culture = yes
-	}
-}
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# PHASE 2: MARKET AGGREGATOR
-# ═══════════════════════════════════════════════════════════════════════════════
-# Fires once globally, 1 day after Phase 1. Reads each market center's
-# accumulated gold maps and converts them into actual temporary demands.
-# The apply effects handle removing old demands, computing basket prices,
-# and applying new demands at the correct scale.
-
-dmsd_slider_demand.4 = {
-	type = country_event
-	title = hidden_event.t
-	hidden = yes
-	immediate = {
-		every_market_in_world = {
-			save_temporary_scope_as = dmsd_mkt
-			location = {
-				add_to_global_variable_list = { name = dmsd_active_locations target = this }
-				dmsd_apply_court = yes
-				dmsd_apply_diplo = yes
-				dmsd_apply_stab = yes
-				dmsd_apply_culture = yes
-			}
-		}
 	}
 }

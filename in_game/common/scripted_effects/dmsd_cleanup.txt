@@ -3,7 +3,7 @@
 		every_in_list = {
 			variable = dmsd_court_applied
 			save_temporary_scope_as = dmsd_old
-			market = { remove_temporary_demand = scope:dmsd_old }
+			scope:dmsd_mkt = { remove_temporary_demand = scope:dmsd_old }
 		}
 		clear_variable_list = dmsd_court_applied
 	}
@@ -11,7 +11,7 @@
 		every_in_list = {
 			variable = dmsd_diplo_applied
 			save_temporary_scope_as = dmsd_old
-			market = { remove_temporary_demand = scope:dmsd_old }
+			scope:dmsd_mkt = { remove_temporary_demand = scope:dmsd_old }
 		}
 		clear_variable_list = dmsd_diplo_applied
 	}
@@ -19,30 +19,37 @@
 		every_in_list = {
 			variable = dmsd_stab_applied
 			save_temporary_scope_as = dmsd_old
-			market = { remove_temporary_demand = scope:dmsd_old }
+			scope:dmsd_mkt = { remove_temporary_demand = scope:dmsd_old }
 		}
 		clear_variable_list = dmsd_stab_applied
 	}
-	if = { limit = { has_variable_map = dmsd_court_map } clear_variable_map = dmsd_court_map }
-	if = { limit = { has_variable_map = dmsd_diplo_map } clear_variable_map = dmsd_diplo_map }
-	if = { limit = { has_variable_map = dmsd_stab_map } clear_variable_map = dmsd_stab_map }
 	if = { limit = { has_variable_list = dmsd_cult_applied }
 		every_in_list = {
 			variable = dmsd_cult_applied
 			save_temporary_scope_as = dmsd_old
-			market = { remove_temporary_demand = scope:dmsd_old }
+			scope:dmsd_mkt = { remove_temporary_demand = scope:dmsd_old }
 		}
 		clear_variable_list = dmsd_cult_applied
 	}
+	if = { limit = { has_variable_map = dmsd_court_map } clear_variable_map = dmsd_court_map }
+	if = { limit = { has_variable_map = dmsd_diplo_map } clear_variable_map = dmsd_diplo_map }
+	if = { limit = { has_variable_map = dmsd_stab_map } clear_variable_map = dmsd_stab_map }
 	if = { limit = { has_variable_map = dmsd_cult_map } clear_variable_map = dmsd_cult_map }
 }
 
 dmsd_full_cleanup = {
-	# Iterate all markets directly — can't rely on dmsd_active_locations
-	# because dmsd_cleanup_orphans may have already cleared the list
-	# earlier in the same monthly pulse.
+	dmsd_nuke_all_demands = yes
 	every_market_in_world = {
-		location = { dmsd_strip_location = yes }
+		location = {
+			if = { limit = { has_variable_list = dmsd_court_applied } clear_variable_list = dmsd_court_applied }
+			if = { limit = { has_variable_list = dmsd_diplo_applied } clear_variable_list = dmsd_diplo_applied }
+			if = { limit = { has_variable_list = dmsd_stab_applied } clear_variable_list = dmsd_stab_applied }
+			if = { limit = { has_variable_list = dmsd_cult_applied } clear_variable_list = dmsd_cult_applied }
+			if = { limit = { has_variable_map = dmsd_court_map } clear_variable_map = dmsd_court_map }
+			if = { limit = { has_variable_map = dmsd_diplo_map } clear_variable_map = dmsd_diplo_map }
+			if = { limit = { has_variable_map = dmsd_stab_map } clear_variable_map = dmsd_stab_map }
+			if = { limit = { has_variable_map = dmsd_cult_map } clear_variable_map = dmsd_cult_map }
+		}
 	}
 	clear_global_variable_list = dmsd_active_locations
 	# Clear per-country proximity caches
