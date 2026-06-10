@@ -84,7 +84,6 @@ dmsd_full_cleanup = {
 		}
 	}
 	if = { limit = { has_global_variable = dmsd_version } remove_global_variable = dmsd_version }
-	if = { limit = { has_global_variable = dmsd_rebuilding } remove_global_variable = dmsd_rebuilding }
 	if = { limit = { has_global_variable = dmsd_swap } remove_global_variable = dmsd_swap }
 	if = { limit = { has_global_variable_map = dmsd_court_reg1 } clear_global_variable_map = dmsd_court_reg1 }
 	if = { limit = { has_global_variable_map = dmsd_diplo_reg1 } clear_global_variable_map = dmsd_diplo_reg1 }

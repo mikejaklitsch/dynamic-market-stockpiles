@@ -87,7 +87,6 @@ dmsd_update_stockpile_scaling = {
 dmsd_init_check_effect = {
 	if = {
 		limit = {
-			NOT = { has_global_variable = dmsd_rebuilding }
 			OR = {
 				AND = {
 					has_game_rule = dmsd_slider_demand_disabled
@@ -111,14 +110,12 @@ dmsd_init_check_effect = {
 				limit = { has_global_variable = dmsd_disabled }
 				remove_global_variable = dmsd_disabled
 			}
-			set_global_variable = dmsd_rebuilding
 			dmsd_full_cleanup = yes
 			dmsd_init_demand_registry = yes
 			random_country = {
 				limit = { is_real_country = yes }
 				every_country = { dmsd_rebuild_prox_cache = yes }
 			}
-			remove_global_variable = dmsd_rebuilding
 		}
 	}
 }
