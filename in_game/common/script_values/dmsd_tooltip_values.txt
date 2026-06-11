@@ -165,40 +165,51 @@ dmsd_tt_market_value = {
 	value = market.total_goods_value_traded
 }
 
-# The reference threshold; markets trading above this are above baseline
-dmsd_tt_threshold = { value = 2500 }
-
-# Market ratio: traded_value / threshold (e.g. 0.19 for a small market)
+# Market ratio: traded / 2500
 dmsd_tt_market_ratio = {
 	value = market.total_goods_value_traded
 	divide = 2500
 }
 
-# Scaling factor: ratio - 1 (negative = below baseline, positive = above)
-# Clamped to min -0.95 so capacity never drops below 5%.
-dmsd_tt_scale_factor = {
+# Diminished ratio: sqrt(traded / 2500)
+dmsd_tt_diminished_ratio = {
 	value = market.total_goods_value_traded
 	divide = 2500
-	subtract = 1
-	min = -0.95
+	pow = 0.5
 }
 
-# Scaling as a percentage for display
-dmsd_tt_stockpile_pct = {
-	value = dmsd_tt_scale_factor
+# Trade-value base capacity: 250 × sqrt(traded / 2500)
+dmsd_tt_trade_base = {
+	value = market.total_goods_value_traded
+	divide = 2500
+	pow = 0.5
+	multiply = 250
+}
+
+# Sum of percentage modifiers from buildings and development
+dmsd_tt_stockpile_pct_mod = {
+	value = modifier:maximum_stockpile_capacity_modifier
+}
+
+# Percentage modifier as display value (e.g. 0.26 → 26%)
+dmsd_tt_stockpile_pct_display = {
+	value = modifier:maximum_stockpile_capacity_modifier
 	multiply = 100
 }
 
-# The base capacity BEFORE our modifier (undo dws_last_size if present)
-dmsd_tt_stockpile_base = {
-	value = modifier:maximum_stockpile_capacity
-	if = {
-		limit = { has_variable = dws_last_size has_location_modifier = dws_stockpile_scaling }
-		subtract = var:dws_last_size
-	}
+# Capacity multiplier: 1 + percentage modifier
+dmsd_tt_capacity_multiplier = {
+	value = 1
+	add = modifier:maximum_stockpile_capacity_modifier
 }
 
-# Our modifier's flat adjustment value (base × scaling factor)
+# Target capacity: trade base × (1 + percentage modifiers)
+dmsd_tt_stockpile_target = {
+	value = dmsd_tt_trade_base
+	multiply = { value = 1 add = modifier:maximum_stockpile_capacity_modifier }
+}
+
+# Our modifier's flat adjustment value
 dmsd_tt_stockpile_adj = {
 	value = 0
 	if = {

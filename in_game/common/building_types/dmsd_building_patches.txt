@@ -1,0 +1,20 @@
+﻿INJECT:market_warehouse = {
+	market_center_modifier = {
+		maximum_stockpile_capacity = -200
+		maximum_stockpile_capacity_modifier = 0.25
+	}
+}
+
+INJECT:funduq = {
+	market_center_modifier = {
+		maximum_stockpile_capacity = -200
+		maximum_stockpile_capacity_modifier = 0.25
+	}
+}
+
+INJECT:husuni_kubwa = {
+	market_center_modifier = {
+		maximum_stockpile_capacity = -200
+		maximum_stockpile_capacity_modifier = 0.25
+	}
+}

@@ -6,9 +6,9 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 # STEP 1: DYNAMIC STOCKPILE SCALING
 # ═══════════════════════════════════════════════════════════════════════════════
-# Adjusts market stockpile capacity based on total goods value traded.
-# Markets trading above the 2500 threshold get bonus capacity; below get reduced.
-# Clamped to -95% so capacity never drops below 5% of base.
+# Sets market stockpile capacity from trade value with sqrt diminishing returns.
+# Base = 250 × sqrt(traded / 2500), then scaled by percentage modifiers from
+# buildings and development (maximum_stockpile_capacity_modifier).
 # Uses dws_ prefix variables (legacy, persisted in existing saves).
 
 dmsd_update_stockpile_scaling = {
@@ -27,8 +27,29 @@ dmsd_update_stockpile_scaling = {
 
 		every_market_in_world = {
 			location = {
+				# Trade-value base: 250 × sqrt(traded / 2500)
 				set_local_variable = {
-					name = dws_base
+					name = dws_trade_base
+					value = {
+						value = market.total_goods_value_traded
+						divide = 2500
+						pow = 0.5
+						multiply = 250
+					}
+				}
+
+				# Apply percentage modifiers from buildings/development
+				set_local_variable = {
+					name = dws_target
+					value = {
+						value = local_var:dws_trade_base
+						multiply = { value = 1 add = modifier:maximum_stockpile_capacity_modifier }
+					}
+				}
+
+				# Vanilla residual flat capacity (everything except our modifier)
+				set_local_variable = {
+					name = dws_vanilla_flat
 					value = {
 						value = modifier:maximum_stockpile_capacity
 						if = {
@@ -38,18 +59,12 @@ dmsd_update_stockpile_scaling = {
 					}
 				}
 
+				# Our modifier offsets vanilla flat so total equals target
 				set_variable = {
 					name = dws_last_size
 					value = {
-						value = local_var:dws_base
-
-						multiply = {
-							value = market.total_goods_value_traded
-							divide = 2500
-							subtract = 1
-						}
-
-						min = { value = local_var:dws_base multiply = -0.95 }
+						value = local_var:dws_target
+						subtract = local_var:dws_vanilla_flat
 					}
 				}
 

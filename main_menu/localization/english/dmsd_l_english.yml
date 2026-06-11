@@ -1,6 +1,9 @@
 ﻿l_english:
+ MODIFIER_TYPE_NAME_maximum_stockpile_capacity_modifier:0 "Stockpile Capacity"
+ MODIFIER_TYPE_DESC_maximum_stockpile_capacity_modifier:0 "Increases the stockpile capacity of this [market|e] by a percentage of its trade value base."
+ dmsd_tt_capacity_mod_header:0 "Stockpile Capacity Modifiers:"
  STATIC_MODIFIER_NAME_dws_stockpile_scaling:0 "Market-Scaled Stockpile"
- STATIC_MODIFIER_DESC_dws_stockpile_scaling:0 "Adjusts stockpile capacity by a percentage derived from the market's total traded value. A market trading 2,500 gold has no adjustment. Below that threshold, capacity shrinks proportionally down to a minimum of 5%. Above it, capacity grows with no upper limit."
+ STATIC_MODIFIER_DESC_dws_stockpile_scaling:0 "Sets stockpile capacity from the market's total traded value, scaled by percentage modifiers from buildings and development."
  STATIC_MODIFIER_NAME_dws_no_burgher_trading:0 "Burgher Trading Disabled"
  STATIC_MODIFIER_DESC_dws_no_burgher_trading:0 "Burghers can no longer generate trades."
  rule_dmsd_stockpiles:0 "Dynamic Stockpiles"
