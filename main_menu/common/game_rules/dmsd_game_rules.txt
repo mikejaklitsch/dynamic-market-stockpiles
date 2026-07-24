@@ -19,6 +19,16 @@ dmsd_slider_demand = {
 	}
 }
 
+dmsd_rgo_productivity = {
+	default = dmsd_rgo_enabled
+
+	dmsd_rgo_enabled = { flag = general_rule }
+
+	dmsd_rgo_disabled = {
+		flag = general_rule
+	}
+}
+
 dws_burgher_trading = {
 	default = dws_burgher_trading_enabled
 

@@ -16,6 +16,7 @@
 #     5. Phase 2 apply - reads this month's accumulated maps, applies demands
 #     6. Swap toggle - alternates demand type pair for next month
 #     7. Orphan cleanup - strips demands from locations no longer market centers
+#     8. RGO productivity - penalizes RGO output when price is below base
 #
 # GAME RULE GATING:
 #   - Every slider-demand codepath checks has_game_rule = dmsd_slider_demand_disabled
@@ -38,10 +39,21 @@ weather_monthly_pulse = {
 	}
 }
 
+on_raw_material_changed = {
+	on_actions = { dmsd_on_raw_material_changed }
+}
+
+dmsd_on_raw_material_changed = {
+	trigger = { NOT = { has_game_rule = dmsd_rgo_disabled } }
+	effect = { dmsd_rgo_on_raw_material_changed = yes }
+}
+
 dmsd_on_game_start = {
 	effect = {
 		dmsd_update_stockpile_scaling = yes
 		dmsd_init_check_effect = yes
+		dmsd_rgo_init_vm = yes
+		dmsd_rgo_productivity_effect = yes
 	}
 }
 
@@ -52,6 +64,7 @@ dmsd_weather_monthly = {
 		dmsd_phase2_apply_effect = yes
 		dmsd_swap_toggle_effect = yes
 		dmsd_cleanup_orphans_effect = yes
+		dmsd_rgo_productivity_effect = yes
 	}
 }
 

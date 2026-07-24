@@ -220,3 +220,27 @@ dmsd_cleanup_orphans_effect = {
 		clear_global_variable_list = dmsd_active_locations
 	}
 }
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STEP 8: RGO PRODUCTIVITY
+# ═══════════════════════════════════════════════════════════════════════════════
+# Penalizes RGO output when market price is below the good's base price.
+# Dispatches to either the threshold or always-replace variant.
+# Gated on game rule; runs cleanup once when disabled.
+
+dmsd_rgo_productivity_effect = {
+	if = {
+		limit = { has_game_rule = dmsd_rgo_disabled }
+		if = {
+			limit = { NOT = { has_global_variable = dmsd_rgo_cleaned } }
+			dmsd_rgo_full_cleanup = yes
+			set_global_variable = dmsd_rgo_cleaned
+		}
+	} else = {
+		if = {
+			limit = { has_global_variable = dmsd_rgo_cleaned }
+			remove_global_variable = dmsd_rgo_cleaned
+		}
+		dmsd_rgo_update = yes
+	}
+}
