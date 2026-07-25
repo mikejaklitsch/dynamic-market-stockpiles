@@ -41,17 +41,18 @@ dmsd_tt_court_raw = {
 		add = {
 			value = var:dmsd_court_slider
 			multiply = 0.1
-			multiply = "country_economical_base"
-			divide = { value = 1 add = "modifier:court_spending_efficiency" min = 0.5 }
+			multiply = country_economical_base
+			divide = { value = 1 add = modifier:court_spending_efficiency min = 0.5 }
 		}
 	}
 }
 
 dmsd_tt_diplo_raw = {
-	value = "diplomatic_maintenance"
-	multiply = "modifier:diplomatic_spending_cost"
-	multiply = "country_economical_base"
-	divide = { value = 1 add = "modifier:diplomatic_upkeep_efficiency" min = 0.5 }
+	value = diplomatic_maintenance
+	multiply = modifier:diplomatic_spending_cost
+	multiply = { value = 1 add = modifier:diplomatic_spending_cost }
+	multiply = country_economical_base
+	divide = { value = 1 add = modifier:diplomatic_upkeep_efficiency min = 0.5 }
 }
 
 # Stability per-unit values for GUI multiplication with the actual slider.
@@ -59,8 +60,8 @@ dmsd_tt_diplo_raw = {
 # the slider position is only accessible from GUI, not script.
 dmsd_tt_stab_base_per_unit = {
 	value = 0.1
-	multiply = "country_economical_base"
-	divide = { value = 1 add = "modifier:stability_cost_efficiency" min = 0.5 }
+	multiply = country_economical_base
+	divide = { value = 1 add = modifier:stability_cost_efficiency min = 0.5 }
 }
 
 # Inferred-slider versions for script contexts

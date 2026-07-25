@@ -279,7 +279,7 @@ template dmsd_expense_extension {
 													blockoverride "block_title" { raw_text = "#T [Location.GetSubContinent.GetName] Court Goods#!" }
 													vbox = {
 														using = layoutpolicy_expanding
-														datamodel = "[GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_court_io', Location.MakeScope).GetInternationalOrganization.MakeScope.GetMapKeys('dmsd_weights')]"
+														datamodel = "[GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_court_dict', Location.MakeScope).GetLocation.MakeScope.GetMapKeys('dmsd_weights')]"
 
 														item = {
 															TooltipManualTableField = {
@@ -297,7 +297,7 @@ template dmsd_expense_extension {
 																text_single = {
 																	min_width = 40
 																	align = right
-																	raw_text = "[Multiply_CFixedPoint(GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_court_io', Location.MakeScope).GetInternationalOrganization.MakeScope.GetVariableFromVariableMap('dmsd_weights', Goods.MakeScope).GetValue, GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_court_scale', Location.MakeScope).GetValue)|2]"
+																	raw_text = "[Multiply_CFixedPoint(GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_court_dict', Location.MakeScope).GetLocation.MakeScope.GetVariableFromVariableMap('dmsd_weights', Goods.MakeScope).GetValue, GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_court_scale', Location.MakeScope).GetValue)|2]"
 																}
 															}
 														}
@@ -307,7 +307,7 @@ template dmsd_expense_extension {
 													blockoverride "block_title" { raw_text = "#T [GetPlayer.GetReligion.GetGroup.GetName] Court Goods#!" }
 													vbox = {
 														using = layoutpolicy_expanding
-														datamodel = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_court_rel_io').GetInternationalOrganization.MakeScope.GetMapKeys('dmsd_weights')]"
+														datamodel = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_court_rel_dict').GetLocation.MakeScope.GetMapKeys('dmsd_weights')]"
 
 														item = {
 															TooltipManualTableField = {
@@ -325,7 +325,7 @@ template dmsd_expense_extension {
 																text_single = {
 																	min_width = 40
 																	align = right
-																	raw_text = "[Multiply_CFixedPoint(GetPlayer.MakeScope.GetVariable('dmsd_disp_court_rel_io').GetInternationalOrganization.MakeScope.GetVariableFromVariableMap('dmsd_weights', Goods.MakeScope).GetValue, GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_court_scale', Location.MakeScope).GetValue)|2]"
+																	raw_text = "[Multiply_CFixedPoint(GetPlayer.MakeScope.GetVariable('dmsd_disp_court_rel_dict').GetLocation.MakeScope.GetVariableFromVariableMap('dmsd_weights', Goods.MakeScope).GetValue, GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_court_scale', Location.MakeScope).GetValue)|2]"
 																}
 															}
 														}
@@ -410,7 +410,7 @@ template dmsd_expense_extension {
 												blockoverride "block_title" { raw_text = "#T [Location.GetSubContinent.GetName] Diplomatic Goods#!" }
 												vbox = {
 													using = layoutpolicy_expanding
-													datamodel = "[GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_diplo_io', Location.MakeScope).GetInternationalOrganization.MakeScope.GetMapKeys('dmsd_weights')]"
+													datamodel = "[GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_diplo_dict', Location.MakeScope).GetLocation.MakeScope.GetMapKeys('dmsd_weights')]"
 
 													item = {
 														TooltipManualTableField = {
@@ -428,7 +428,7 @@ template dmsd_expense_extension {
 															text_single = {
 																min_width = 40
 																align = right
-																raw_text = "[Multiply_CFixedPoint(GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_diplo_io', Location.MakeScope).GetInternationalOrganization.MakeScope.GetVariableFromVariableMap('dmsd_weights', Goods.MakeScope).GetValue, GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_diplo_scale', Location.MakeScope).GetValue)|2]"
+																raw_text = "[Multiply_CFixedPoint(GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_diplo_dict', Location.MakeScope).GetLocation.MakeScope.GetVariableFromVariableMap('dmsd_weights', Goods.MakeScope).GetValue, GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_diplo_scale', Location.MakeScope).GetValue)|2]"
 															}
 														}
 													}
@@ -512,7 +512,7 @@ template dmsd_expense_extension {
 												blockoverride "block_title" { raw_text = "#T [Location.GetSubContinent.GetName] Cultural Goods#!" }
 												vbox = {
 													using = layoutpolicy_expanding
-													datamodel = "[GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_cult_io', Location.MakeScope).GetInternationalOrganization.MakeScope.GetMapKeys('dmsd_weights')]"
+													datamodel = "[GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_cult_dict', Location.MakeScope).GetLocation.MakeScope.GetMapKeys('dmsd_weights')]"
 
 													item = {
 														TooltipManualTableField = {
@@ -530,7 +530,7 @@ template dmsd_expense_extension {
 															text_single = {
 																min_width = 40
 																align = right
-																raw_text = "[Multiply_CFixedPoint(GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_cult_io', Location.MakeScope).GetInternationalOrganization.MakeScope.GetVariableFromVariableMap('dmsd_weights', Goods.MakeScope).GetValue, GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_cult_scale', Location.MakeScope).GetValue)|2]"
+																raw_text = "[Multiply_CFixedPoint(GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_cult_dict', Location.MakeScope).GetLocation.MakeScope.GetVariableFromVariableMap('dmsd_weights', Goods.MakeScope).GetValue, GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_cult_scale', Location.MakeScope).GetValue)|2]"
 															}
 														}
 													}

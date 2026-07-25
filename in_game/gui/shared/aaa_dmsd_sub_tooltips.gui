@@ -145,8 +145,8 @@ template dmsd_cult_efficiency_tooltip {
 # Shows regional and religious goods in separate sections
 
 # Court goods — reads IO reference from country variable set during Phase 1.
-# The IO holds dmsd_weights map with the goods for the active regional variant.
-# Country variable dmsd_disp_court_reg_io and dmsd_disp_court_rel_io are
+# The location dict holds dmsd_weights map with the goods for the active regional variant.
+# Country variable dmsd_disp_court_reg_dict and dmsd_disp_court_rel_dict are
 # updated monthly based on capital subcontinent and religion.
 
 template dmsd_court_goods_tooltip {
@@ -163,14 +163,14 @@ template dmsd_court_goods_tooltip {
 						blockoverride "block_title" { raw_text = "#T [GetPlayer.GetCapital.GetSubContinent.GetName] Court Goods#!" }
 						vbox = {
 							using = layoutpolicy_expanding
-							datamodel = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_court_reg_io').GetInternationalOrganization.MakeScope.GetMapKeys('dmsd_weights')]"
+							datamodel = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_court_reg_dict').GetLocation.MakeScope.GetMapKeys('dmsd_weights')]"
 							item = {
 								TooltipManualTableField = {
 									datacontext = "[Scope.GetGoods]"
 									icon = { size = { 20 20 } texture = "[GetGoodsIcon(Goods.Self)]" }
 									text_single = { layoutpolicy_horizontal = expanding margin_left = 3 text = "[Goods.GetName]" }
 									expand = { }
-									text_single = { min_width = 40 align = right raw_text = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_court_reg_io').GetInternationalOrganization.MakeScope.GetVariableFromVariableMap('dmsd_weights', Scope.GetGoods.MakeScope).GetValue|2]" }
+									text_single = { min_width = 40 align = right raw_text = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_court_reg_dict').GetLocation.MakeScope.GetVariableFromVariableMap('dmsd_weights', Scope.GetGoods.MakeScope).GetValue|2]" }
 								}
 							}
 						}
@@ -180,14 +180,14 @@ template dmsd_court_goods_tooltip {
 						blockoverride "block_title" { raw_text = "#T [GetPlayer.GetReligion.GetGroup.GetName] Court Goods#!" }
 						vbox = {
 							using = layoutpolicy_expanding
-							datamodel = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_court_rel_io').GetInternationalOrganization.MakeScope.GetMapKeys('dmsd_weights')]"
+							datamodel = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_court_rel_dict').GetLocation.MakeScope.GetMapKeys('dmsd_weights')]"
 							item = {
 								TooltipManualTableField = {
 									datacontext = "[Scope.GetGoods]"
 									icon = { size = { 20 20 } texture = "[GetGoodsIcon(Goods.Self)]" }
 									text_single = { layoutpolicy_horizontal = expanding margin_left = 3 text = "[Goods.GetName]" }
 									expand = { }
-									text_single = { min_width = 40 align = right raw_text = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_court_rel_io').GetInternationalOrganization.MakeScope.GetVariableFromVariableMap('dmsd_weights', Scope.GetGoods.MakeScope).GetValue|2]" }
+									text_single = { min_width = 40 align = right raw_text = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_court_rel_dict').GetLocation.MakeScope.GetVariableFromVariableMap('dmsd_weights', Scope.GetGoods.MakeScope).GetValue|2]" }
 								}
 							}
 						}
@@ -209,14 +209,14 @@ template dmsd_diplo_goods_tooltip {
 					blockoverride "block_title" { raw_text = "#T [GetPlayer.GetCapital.GetSubContinent.GetName] Diplomatic Goods#!" }
 					vbox = {
 						using = layoutpolicy_expanding
-						datamodel = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_diplo_io').GetInternationalOrganization.MakeScope.GetMapKeys('dmsd_weights')]"
+						datamodel = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_diplo_dict').GetLocation.MakeScope.GetMapKeys('dmsd_weights')]"
 						item = {
 							TooltipManualTableField = {
 								datacontext = "[Scope.GetGoods]"
 								icon = { size = { 20 20 } texture = "[GetGoodsIcon(Goods.Self)]" }
 								text_single = { layoutpolicy_horizontal = expanding margin_left = 3 text = "[Goods.GetName]" }
 								expand = { }
-								text_single = { min_width = 40 align = right raw_text = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_diplo_io').GetInternationalOrganization.MakeScope.GetVariableFromVariableMap('dmsd_weights', Scope.GetGoods.MakeScope).GetValue|2]" }
+								text_single = { min_width = 40 align = right raw_text = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_diplo_dict').GetLocation.MakeScope.GetVariableFromVariableMap('dmsd_weights', Scope.GetGoods.MakeScope).GetValue|2]" }
 							}
 						}
 					}
@@ -237,14 +237,14 @@ template dmsd_stab_goods_tooltip {
 					blockoverride "block_title" { raw_text = "#T [GetPlayer.GetCapital.GetSubContinent.GetName] Stability Goods#!" }
 					vbox = {
 						using = layoutpolicy_expanding
-						datamodel = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_stab_io').GetInternationalOrganization.MakeScope.GetMapKeys('dmsd_weights')]"
+						datamodel = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_stab_dict').GetLocation.MakeScope.GetMapKeys('dmsd_weights')]"
 						item = {
 							TooltipManualTableField = {
 								datacontext = "[Scope.GetGoods]"
 								icon = { size = { 20 20 } texture = "[GetGoodsIcon(Goods.Self)]" }
 								text_single = { layoutpolicy_horizontal = expanding margin_left = 3 text = "[Goods.GetName]" }
 								expand = { }
-								text_single = { min_width = 40 align = right raw_text = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_stab_io').GetInternationalOrganization.MakeScope.GetVariableFromVariableMap('dmsd_weights', Scope.GetGoods.MakeScope).GetValue|2]" }
+								text_single = { min_width = 40 align = right raw_text = "[GetPlayer.MakeScope.GetVariable('dmsd_disp_stab_dict').GetLocation.MakeScope.GetVariableFromVariableMap('dmsd_weights', Scope.GetGoods.MakeScope).GetValue|2]" }
 							}
 						}
 					}

@@ -37,44 +37,44 @@ dmsd_slider_demand.1 = {
 			dmsd_rebuild_prox_cache = yes
 		}
 
-		religion = { group = { save_temporary_scope_as = dmsd_rg } }
+		religion = { group = { save_temporary_scope_as = dmsd_rel_group } }
 		dmsd_infer_court_slider = yes
 
-		# Resolve demand variant IOs for GUI tooltip display.
-		# Two-step lookup: subcontinent → demand type → IO.
+		# Resolve demand variant dicts for GUI tooltip display.
+		# Two-step lookup: subcontinent → demand type → dict.
 		# Results stored as country variables read by GetVariable in GUI.
-		capital = { sub_continent = { save_temporary_scope_as = dmsd_disp_sc } }
+		capital = { sub_continent = { save_temporary_scope_as = dmsd_disp_subcontinent } }
 
 		if = {
-			limit = { is_key_in_global_variable_map = { name = dmsd_court_reg1 target = scope:dmsd_disp_sc } }
-			set_local_variable = { name = dmsd_disp_d value = "global_variable_map(dmsd_court_reg1|scope:dmsd_disp_sc)" }
+			limit = { is_key_in_global_variable_map = { name = dmsd_court_reg1 target = scope:dmsd_disp_subcontinent } }
+			set_local_variable = { name = dmsd_disp_demand value = "global_variable_map(dmsd_court_reg1|scope:dmsd_disp_subcontinent)" }
 		} else = {
-			set_local_variable = { name = dmsd_disp_d value = demand:dmsd_court_demand1 }
+			set_local_variable = { name = dmsd_disp_demand value = demand:dmsd_court_demand1 }
 		}
-		set_variable = { name = dmsd_disp_court_reg_io value = "global_variable_map(dmsd_demand_io|local_var:dmsd_disp_d)" }
+		set_variable = { name = dmsd_disp_court_reg_dict value = "global_variable_map(dmsd_demand_dict|local_var:dmsd_disp_demand)" }
 
 		if = {
-			limit = { is_key_in_global_variable_map = { name = dmsd_court_reg1 target = scope:dmsd_rg } }
-			set_local_variable = { name = dmsd_disp_d value = "global_variable_map(dmsd_court_reg1|scope:dmsd_rg)" }
-			set_variable = { name = dmsd_disp_court_rel_io value = "global_variable_map(dmsd_demand_io|local_var:dmsd_disp_d)" }
+			limit = { is_key_in_global_variable_map = { name = dmsd_court_reg1 target = scope:dmsd_rel_group } }
+			set_local_variable = { name = dmsd_disp_demand value = "global_variable_map(dmsd_court_reg1|scope:dmsd_rel_group)" }
+			set_variable = { name = dmsd_disp_court_rel_dict value = "global_variable_map(dmsd_demand_dict|local_var:dmsd_disp_demand)" }
 		}
 
-		# Diplo, stab, cult IO refs: same pattern, different registries
+		# Diplo, stab, cult dict refs: same pattern, different registries
 		if = {
-			limit = { is_key_in_global_variable_map = { name = dmsd_diplo_reg1 target = scope:dmsd_disp_sc } }
-			set_local_variable = { name = dmsd_disp_d value = "global_variable_map(dmsd_diplo_reg1|scope:dmsd_disp_sc)" }
+			limit = { is_key_in_global_variable_map = { name = dmsd_diplo_reg1 target = scope:dmsd_disp_subcontinent } }
+			set_local_variable = { name = dmsd_disp_demand value = "global_variable_map(dmsd_diplo_reg1|scope:dmsd_disp_subcontinent)" }
 		} else = {
-			set_local_variable = { name = dmsd_disp_d value = demand:dmsd_diplomatic_demand1 }
+			set_local_variable = { name = dmsd_disp_demand value = demand:dmsd_diplomatic_demand1 }
 		}
-		set_variable = { name = dmsd_disp_diplo_io value = "global_variable_map(dmsd_demand_io|local_var:dmsd_disp_d)" }
+		set_variable = { name = dmsd_disp_diplo_dict value = "global_variable_map(dmsd_demand_dict|local_var:dmsd_disp_demand)" }
 
 		if = {
-			limit = { is_key_in_global_variable_map = { name = dmsd_stab_reg1 target = scope:dmsd_disp_sc } }
-			set_local_variable = { name = dmsd_disp_d value = "global_variable_map(dmsd_stab_reg1|scope:dmsd_disp_sc)" }
+			limit = { is_key_in_global_variable_map = { name = dmsd_stab_reg1 target = scope:dmsd_disp_subcontinent } }
+			set_local_variable = { name = dmsd_disp_demand value = "global_variable_map(dmsd_stab_reg1|scope:dmsd_disp_subcontinent)" }
 		} else = {
-			set_local_variable = { name = dmsd_disp_d value = demand:dmsd_stability_demand1 }
+			set_local_variable = { name = dmsd_disp_demand value = demand:dmsd_stability_demand1 }
 		}
-		set_variable = { name = dmsd_disp_stab_io value = "global_variable_map(dmsd_demand_io|local_var:dmsd_disp_d)" }
+		set_variable = { name = dmsd_disp_stab_dict value = "global_variable_map(dmsd_demand_dict|local_var:dmsd_disp_demand)" }
 
 		# Court gold calculation.
 		# court_maintenance trigger gives raw slider position (0-1) but doesn't
@@ -90,8 +90,8 @@ dmsd_slider_demand.1 = {
 					add = {
 						value = var:dmsd_court_slider
 						multiply = 0.1
-						multiply = "country_economical_base"
-						divide = { value = 1 add = "modifier:court_spending_efficiency" min = 0.5 }
+						multiply = country_economical_base
+						divide = { value = 1 add = modifier:court_spending_efficiency min = 0.5 }
 					}
 				}
 			}
@@ -110,8 +110,9 @@ dmsd_slider_demand.1 = {
 }
 
 # --- Event .2: Diplomatic spending ---
-# Gold = diplomatic_maintenance × base_rate × eco_base / efficiency_divisor
-# diplomatic_maintenance trigger works correctly here (no capping issue).
+# Gold = diplomatic_maintenance × cost × (1 + cost) × eco_base / efficiency
+# Vanilla applies diplomatic_spending_cost twice: once as the base rate, once
+# as a (1 + cost) multiplier.
 dmsd_slider_demand.2 = {
 	type = country_event
 	title = hidden_event.t
@@ -121,10 +122,11 @@ dmsd_slider_demand.2 = {
 		set_local_variable = {
 			name = dmsd_gold
 			value = {
-				value = "diplomatic_maintenance"
-				multiply = "modifier:diplomatic_spending_cost"
-				multiply = "country_economical_base"
-				divide = { value = 1 add = "modifier:diplomatic_upkeep_efficiency" min = 0.5 }
+				value = diplomatic_maintenance
+				multiply = modifier:diplomatic_spending_cost
+				multiply = { value = 1 add = modifier:diplomatic_spending_cost }
+				multiply = country_economical_base
+				divide = { value = 1 add = modifier:diplomatic_upkeep_efficiency min = 0.5 }
 			}
 		}
 		change_local_variable = {
@@ -159,8 +161,8 @@ dmsd_slider_demand.3 = {
 					add = {
 						value = var:dmsd_stab_slider
 						multiply = 0.1
-						multiply = "country_economical_base"
-						divide = { value = 1 add = "modifier:stability_cost_efficiency" min = 0.5 }
+						multiply = country_economical_base
+						divide = { value = 1 add = modifier:stability_cost_efficiency min = 0.5 }
 					}
 				}
 			}
@@ -198,19 +200,20 @@ dmsd_slider_demand.5 = {
 		set_local_variable = { name = dmsd_char_mod_sum value = 0 }
 		every_artist = {
 			change_local_variable = { name = dmsd_num_artists add = 1 }
-			change_local_variable = { name = dmsd_char_mod_sum add = "modifier:artist_salary_modifier_on_character" }
+			change_local_variable = { name = dmsd_char_mod_sum add = modifier:artist_salary_modifier_on_character }
 		}
 		set_local_variable = {
 			name = dmsd_gold
 			value = {
 				value = 0.025
-				multiply = "country_tax_base"
+				multiply = cultural_maintenance
+				multiply = country_tax_base
 				multiply = local_var:dmsd_num_artists
 				multiply = local_var:dmsd_num_artists
 				divide = 12
 				multiply = {
 					value = 1
-					add = "modifier:artist_salary_modifier"
+					add = modifier:artist_salary_modifier
 					add = {
 						value = local_var:dmsd_char_mod_sum
 						divide = { value = local_var:dmsd_num_artists min = 1 }
@@ -231,14 +234,14 @@ dmsd_slider_demand.5 = {
 			}
 		}
 
-		capital = { sub_continent = { save_temporary_scope_as = dmsd_disp_sc } }
+		capital = { sub_continent = { save_temporary_scope_as = dmsd_disp_subcontinent } }
 		if = {
-			limit = { is_key_in_global_variable_map = { name = dmsd_cult_reg1 target = scope:dmsd_disp_sc } }
-			set_local_variable = { name = dmsd_disp_d value = "global_variable_map(dmsd_cult_reg1|scope:dmsd_disp_sc)" }
+			limit = { is_key_in_global_variable_map = { name = dmsd_cult_reg1 target = scope:dmsd_disp_subcontinent } }
+			set_local_variable = { name = dmsd_disp_demand value = "global_variable_map(dmsd_cult_reg1|scope:dmsd_disp_subcontinent)" }
 		} else = {
-			set_local_variable = { name = dmsd_disp_d value = demand:dmsd_cultural_demand1 }
+			set_local_variable = { name = dmsd_disp_demand value = demand:dmsd_cultural_demand1 }
 		}
-		set_variable = { name = dmsd_disp_cult_io value = "global_variable_map(dmsd_demand_io|local_var:dmsd_disp_d)" }
+		set_variable = { name = dmsd_disp_cult_dict value = "global_variable_map(dmsd_demand_dict|local_var:dmsd_disp_demand)" }
 
 		dmsd_accumulate_culture = yes
 	}

@@ -115,14 +115,14 @@ template StabilityExpenseSettingParentTooltip {
 												blockoverride "block_title" { raw_text = "#T [Location.GetSubContinent.GetName] Stability Goods#!" }
 												vbox = {
 													using = layoutpolicy_expanding
-													datamodel = "[GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_stab_io', Location.MakeScope).GetInternationalOrganization.MakeScope.GetMapKeys('dmsd_weights')]"
+													datamodel = "[GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_stab_dict', Location.MakeScope).GetLocation.MakeScope.GetMapKeys('dmsd_weights')]"
 													item = {
 														TooltipManualTableField = {
 															datacontext = "[Scope.GetGoods]"
 															icon = { size = { 20 20 } texture = "[GetGoodsIcon(Goods.Self)]" }
 															text_single = { layoutpolicy_horizontal = expanding margin_left = 3 text = "[Goods.GetName]" }
 															expand = { }
-															text_single = { min_width = 40 align = right raw_text = "[Multiply_CFixedPoint(GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_stab_io', Location.MakeScope).GetInternationalOrganization.MakeScope.GetVariableFromVariableMap('dmsd_weights', Goods.MakeScope).GetValue, GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_stab_scale', Location.MakeScope).GetValue)|2]" }
+															text_single = { min_width = 40 align = right raw_text = "[Multiply_CFixedPoint(GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_stab_dict', Location.MakeScope).GetLocation.MakeScope.GetVariableFromVariableMap('dmsd_weights', Goods.MakeScope).GetValue, GetPlayer.MakeScope.GetVariableFromVariableMap('dmsd_prox_stab_scale', Location.MakeScope).GetValue)|2]" }
 														}
 													}
 												}
@@ -133,8 +133,8 @@ template StabilityExpenseSettingParentTooltip {
 							}
 						}
 					}
+						}
 					}
-				}
 				}
 			}
 

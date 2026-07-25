@@ -15,15 +15,13 @@ dmsd_suppress.1 = {
 	}
 
 	immediate = {
-		change_variable = { name = dmsd_disp_court_reg_io multiply = 1 }
-		change_variable = { name = dmsd_disp_court_rel_io multiply = 1 }
-		change_variable = { name = dmsd_disp_diplo_io multiply = 1 }
-		change_variable = { name = dmsd_disp_stab_io multiply = 1 }
-		change_variable = { name = dmsd_disp_cult_io multiply = 1 }
+		change_variable = { name = dmsd_disp_court_reg_dict multiply = 1 }
+		change_variable = { name = dmsd_disp_court_rel_dict multiply = 1 }
+		change_variable = { name = dmsd_disp_diplo_dict multiply = 1 }
+		change_variable = { name = dmsd_disp_stab_dict multiply = 1 }
+		change_variable = { name = dmsd_disp_cult_dict multiply = 1 }
 		change_variable = { name = dmsd_cult_raw_gold multiply = 1 }
 
-		set_local_variable = { name = dmsd_disp_d value = 0 }
-		change_local_variable = { name = dmsd_disp_d multiply = 1 }
 		set_local_variable = { name = dmsd_disp_demand value = 0 }
 		change_local_variable = { name = dmsd_disp_demand multiply = 1 }
 

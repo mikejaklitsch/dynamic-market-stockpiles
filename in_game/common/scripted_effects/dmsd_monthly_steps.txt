@@ -173,7 +173,7 @@ dmsd_phase2_apply_effect = {
 			NOT = { has_game_rule = dmsd_slider_demand_disabled }
 		}
 		every_market_in_world = {
-			save_temporary_scope_as = dmsd_mkt
+			save_temporary_scope_as = dmsd_market
 			location = {
 				add_to_global_variable_list = { name = dmsd_active_locations target = this }
 				dmsd_apply_court = yes
@@ -214,7 +214,7 @@ dmsd_cleanup_orphans_effect = {
 		every_in_global_list = {
 			variable = dmsd_active_locations
 			limit = { is_market_center = no }
-			market = { save_temporary_scope_as = dmsd_mkt }
+			market = { save_temporary_scope_as = dmsd_market }
 			dmsd_strip_location = yes
 		}
 		clear_global_variable_list = dmsd_active_locations

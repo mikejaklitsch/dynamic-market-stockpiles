@@ -1,0 +1,257 @@
+﻿# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 2: APPLY DEMANDS
+# ═══════════════════════════════════════════════════════════════════════════════
+# Reads each slider's gold map (built by Phase 1 accumulation) and converts
+# entries into temporary demands on the market.
+#
+# Each map is keyed by demand type (regional or religion variant). Each key's
+# value is the total gold accumulated from all countries routing through this
+# market for that demand type.
+#
+# Demand scale = gold / basket_price, where basket_price = sum of
+# (weight × market_price) across all goods in the demand's weight dict.
+#
+# The swap system alternates between demand type pairs (reg1/reg2) monthly
+# to work around engine limitations on updating existing temporary demands.
+#
+# All four sliders follow the same structure. They cannot be parameterized
+# into a single effect because variable_map() reads fail when the map name
+# is a $parameter$.
+#
+# Context: location scope (market center), scope:dmsd_market = market
+
+dmsd_apply_court = {
+	if = {
+		limit = { has_variable_list = dmsd_court_applied }
+		every_in_list = {
+			variable = dmsd_court_applied
+			save_temporary_scope_as = dmsd_old_demand
+			scope:dmsd_market = { remove_temporary_demand = scope:dmsd_old_demand }
+		}
+		clear_variable_list = dmsd_court_applied
+	}
+
+	if = {
+		limit = { has_variable_map = dmsd_court_map }
+		every_key_in_variable_map = {
+			variable = dmsd_court_map
+			save_temporary_scope_as = dmsd_demand
+
+			scope:dmsd_market = {
+				set_local_variable = { name = dmsd_basket_price value = 0 }
+				set_global_variable = { name = dmsd_dict_ref value = "global_variable_map(dmsd_demand_dict|scope:dmsd_demand)" }
+				global_var:dmsd_dict_ref = {
+					every_key_in_variable_map = {
+						variable = dmsd_weights
+						save_temporary_scope_as = dmsd_good
+						scope:dmsd_market = {
+							change_local_variable = {
+								name = dmsd_basket_price
+								add = { value = "global_var:dmsd_dict_ref.variable_map(dmsd_weights|scope:dmsd_good)" multiply = "market_price(scope:dmsd_good)" }
+							}
+						}
+					}
+				}
+
+				set_local_variable = { name = dmsd_gold_value value = "location.variable_map(dmsd_court_map|scope:dmsd_demand)" }
+				if = {
+					limit = { local_var:dmsd_basket_price > 0 local_var:dmsd_gold_value >= 0.01 }
+					if = {
+						limit = { has_global_variable = dmsd_swap }
+						add_temporary_demand = {
+							type = "global_variable_map(dmsd_demand_swap|scope:dmsd_demand)"
+							months = -1
+							scale = { value = local_var:dmsd_gold_value divide = local_var:dmsd_basket_price }
+						}
+						location = { add_to_variable_list = { name = dmsd_court_applied target = "global_variable_map(dmsd_demand_swap|scope:dmsd_demand)" } }
+					} else = {
+						add_temporary_demand = {
+							type = scope:dmsd_demand
+							months = -1
+							scale = { value = local_var:dmsd_gold_value divide = local_var:dmsd_basket_price }
+						}
+						location = { add_to_variable_list = { name = dmsd_court_applied target = scope:dmsd_demand } }
+					}
+				}
+			}
+		}
+		clear_variable_map = dmsd_court_map
+	}
+}
+
+dmsd_apply_diplo = {
+	if = {
+		limit = { has_variable_list = dmsd_diplo_applied }
+		every_in_list = {
+			variable = dmsd_diplo_applied
+			save_temporary_scope_as = dmsd_old_demand
+			scope:dmsd_market = { remove_temporary_demand = scope:dmsd_old_demand }
+		}
+		clear_variable_list = dmsd_diplo_applied
+	}
+
+	if = {
+		limit = { has_variable_map = dmsd_diplo_map }
+		every_key_in_variable_map = {
+			variable = dmsd_diplo_map
+			save_temporary_scope_as = dmsd_demand
+
+			scope:dmsd_market = {
+				set_local_variable = { name = dmsd_basket_price value = 0 }
+				set_global_variable = { name = dmsd_dict_ref value = "global_variable_map(dmsd_demand_dict|scope:dmsd_demand)" }
+				global_var:dmsd_dict_ref = {
+					every_key_in_variable_map = {
+						variable = dmsd_weights
+						save_temporary_scope_as = dmsd_good
+						scope:dmsd_market = {
+							change_local_variable = {
+								name = dmsd_basket_price
+								add = { value = "global_var:dmsd_dict_ref.variable_map(dmsd_weights|scope:dmsd_good)" multiply = "market_price(scope:dmsd_good)" }
+							}
+						}
+					}
+				}
+
+				set_local_variable = { name = dmsd_gold_value value = "location.variable_map(dmsd_diplo_map|scope:dmsd_demand)" }
+				if = {
+					limit = { local_var:dmsd_basket_price > 0 local_var:dmsd_gold_value >= 0.01 }
+					if = {
+						limit = { has_global_variable = dmsd_swap }
+						add_temporary_demand = {
+							type = "global_variable_map(dmsd_demand_swap|scope:dmsd_demand)"
+							months = -1
+							scale = { value = local_var:dmsd_gold_value divide = local_var:dmsd_basket_price }
+						}
+						location = { add_to_variable_list = { name = dmsd_diplo_applied target = "global_variable_map(dmsd_demand_swap|scope:dmsd_demand)" } }
+					} else = {
+						add_temporary_demand = {
+							type = scope:dmsd_demand
+							months = -1
+							scale = { value = local_var:dmsd_gold_value divide = local_var:dmsd_basket_price }
+						}
+						location = { add_to_variable_list = { name = dmsd_diplo_applied target = scope:dmsd_demand } }
+					}
+				}
+			}
+		}
+		clear_variable_map = dmsd_diplo_map
+	}
+}
+
+dmsd_apply_stab = {
+	if = {
+		limit = { has_variable_list = dmsd_stab_applied }
+		every_in_list = {
+			variable = dmsd_stab_applied
+			save_temporary_scope_as = dmsd_old_demand
+			scope:dmsd_market = { remove_temporary_demand = scope:dmsd_old_demand }
+		}
+		clear_variable_list = dmsd_stab_applied
+	}
+
+	if = {
+		limit = { has_variable_map = dmsd_stab_map }
+		every_key_in_variable_map = {
+			variable = dmsd_stab_map
+			save_temporary_scope_as = dmsd_demand
+
+			scope:dmsd_market = {
+				set_local_variable = { name = dmsd_basket_price value = 0 }
+				set_global_variable = { name = dmsd_dict_ref value = "global_variable_map(dmsd_demand_dict|scope:dmsd_demand)" }
+				global_var:dmsd_dict_ref = {
+					every_key_in_variable_map = {
+						variable = dmsd_weights
+						save_temporary_scope_as = dmsd_good
+						scope:dmsd_market = {
+							change_local_variable = {
+								name = dmsd_basket_price
+								add = { value = "global_var:dmsd_dict_ref.variable_map(dmsd_weights|scope:dmsd_good)" multiply = "market_price(scope:dmsd_good)" }
+							}
+						}
+					}
+				}
+
+				set_local_variable = { name = dmsd_gold_value value = "location.variable_map(dmsd_stab_map|scope:dmsd_demand)" }
+				if = {
+					limit = { local_var:dmsd_basket_price > 0 local_var:dmsd_gold_value >= 0.01 }
+					if = {
+						limit = { has_global_variable = dmsd_swap }
+						add_temporary_demand = {
+							type = "global_variable_map(dmsd_demand_swap|scope:dmsd_demand)"
+							months = -1
+							scale = { value = local_var:dmsd_gold_value divide = local_var:dmsd_basket_price }
+						}
+						location = { add_to_variable_list = { name = dmsd_stab_applied target = "global_variable_map(dmsd_demand_swap|scope:dmsd_demand)" } }
+					} else = {
+						add_temporary_demand = {
+							type = scope:dmsd_demand
+							months = -1
+							scale = { value = local_var:dmsd_gold_value divide = local_var:dmsd_basket_price }
+						}
+						location = { add_to_variable_list = { name = dmsd_stab_applied target = scope:dmsd_demand } }
+					}
+				}
+			}
+		}
+		clear_variable_map = dmsd_stab_map
+	}
+}
+
+dmsd_apply_culture = {
+	if = {
+		limit = { has_variable_list = dmsd_cult_applied }
+		every_in_list = {
+			variable = dmsd_cult_applied
+			save_temporary_scope_as = dmsd_old_demand
+			scope:dmsd_market = { remove_temporary_demand = scope:dmsd_old_demand }
+		}
+		clear_variable_list = dmsd_cult_applied
+	}
+
+	if = {
+		limit = { has_variable_map = dmsd_cult_map }
+		every_key_in_variable_map = {
+			variable = dmsd_cult_map
+			save_temporary_scope_as = dmsd_demand
+
+			scope:dmsd_market = {
+				set_local_variable = { name = dmsd_basket_price value = 0 }
+				set_global_variable = { name = dmsd_dict_ref value = "global_variable_map(dmsd_demand_dict|scope:dmsd_demand)" }
+				global_var:dmsd_dict_ref = {
+					every_key_in_variable_map = {
+						variable = dmsd_weights
+						save_temporary_scope_as = dmsd_good
+						scope:dmsd_market = {
+							change_local_variable = {
+								name = dmsd_basket_price
+								add = { value = "global_var:dmsd_dict_ref.variable_map(dmsd_weights|scope:dmsd_good)" multiply = "market_price(scope:dmsd_good)" }
+							}
+						}
+					}
+				}
+
+				set_local_variable = { name = dmsd_gold_value value = "location.variable_map(dmsd_cult_map|scope:dmsd_demand)" }
+				if = {
+					limit = { local_var:dmsd_basket_price > 0 local_var:dmsd_gold_value >= 0.01 }
+					if = {
+						limit = { has_global_variable = dmsd_swap }
+						add_temporary_demand = {
+							type = "global_variable_map(dmsd_demand_swap|scope:dmsd_demand)"
+							months = -1
+							scale = { value = local_var:dmsd_gold_value divide = local_var:dmsd_basket_price }
+						}
+						location = { add_to_variable_list = { name = dmsd_cult_applied target = "global_variable_map(dmsd_demand_swap|scope:dmsd_demand)" } }
+					} else = {
+						add_temporary_demand = {
+							type = scope:dmsd_demand
+							months = -1
+							scale = { value = local_var:dmsd_gold_value divide = local_var:dmsd_basket_price }
+						}
+						location = { add_to_variable_list = { name = dmsd_cult_applied target = scope:dmsd_demand } }
+					}
+				}
+			}
+		}
+		clear_variable_map = dmsd_cult_map
+	}
+}
