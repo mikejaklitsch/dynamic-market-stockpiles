@@ -14,7 +14,7 @@ Each country's court, diplomatic, stability, and cultural spending is converted 
 
 **Accumulation:** each source's share is added into a per-slider gold map (`dmsd_court_map`, `dmsd_diplo_map`, `dmsd_stab_map`, `dmsd_cult_map`) on the source's market center location, keyed by demand type. All countries routing through the same market accumulate additively into the same map. Phase 2 consumes and clears these maps every month.
 
-**Tooltip subsystem:** the Phase 1 events and accumulators also maintain display-only state (`dmsd_disp_*` country variables, `dmsd_prox_*_dict/gold/scale` maps, `dmsd_cult_raw_gold`). These feed GUI tooltips and have no effect on gameplay logic; the per-source scale in those maps is informational, the applied scale is computed in Phase 2 from aggregated gold.
+**Tooltip subsystem:** the Phase 1 events and accumulators also maintain display-only state (`dmsd_prox_*_dict/gold/scale` maps for the per-source goods breakdowns, `dmsd_disp_court_rel_dict` for the country-level religion basket, `dmsd_cult_raw_gold`). This state feeds GUI tooltips and has no effect on gameplay logic; the per-source scale in those maps is informational, the applied scale is computed in Phase 2 from aggregated gold.
 
 ## Court (Event .1)
 

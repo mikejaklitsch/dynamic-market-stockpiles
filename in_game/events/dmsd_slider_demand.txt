@@ -1,4 +1,5 @@
-﻿namespace = dmsd_slider_demand
+﻿
+namespace = dmsd_slider_demand
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SLIDER DEMAND EVENTS
@@ -18,7 +19,6 @@
 # 0.415 = log(0.75)/log(0.5), the exponent that yields exactly ×0.75 per doubling.
 @dmsd_eff_exponent = 0.415
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # PHASE 1: PER-COUNTRY ACCUMULATORS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -26,12 +26,13 @@
 # --- Event .1: Court spending ---
 # Gold = inferred_slider × 0.1 × eco_base / efficiency_divisor
 # Court splits 50/50 between regional and religion demand baskets.
+
 dmsd_slider_demand.1 = {
 	type = country_event
 	title = hidden_event.t
 	hidden = yes
-	immediate = {
 
+	immediate = {
 		if = {
 			limit = { NOT = { has_variable_list = dmsd_prox_sources } }
 			dmsd_rebuild_prox_cache = yes
@@ -40,41 +41,19 @@ dmsd_slider_demand.1 = {
 		religion = { group = { save_temporary_scope_as = dmsd_rel_group } }
 		dmsd_infer_court_slider = yes
 
-		# Resolve demand variant dicts for GUI tooltip display.
-		# Two-step lookup: subcontinent → demand type → dict.
-		# Results stored as country variables read by GetVariable in GUI.
-		capital = { sub_continent = { save_temporary_scope_as = dmsd_disp_subcontinent } }
-
-		if = {
-			limit = { is_key_in_global_variable_map = { name = dmsd_court_reg1 target = scope:dmsd_disp_subcontinent } }
-			set_local_variable = { name = dmsd_disp_demand value = "global_variable_map(dmsd_court_reg1|scope:dmsd_disp_subcontinent)" }
-		} else = {
-			set_local_variable = { name = dmsd_disp_demand value = demand:dmsd_court_demand1 }
-		}
-		set_variable = { name = dmsd_disp_court_reg_dict value = "global_variable_map(dmsd_demand_dict|local_var:dmsd_disp_demand)" }
-
+		# Resolve the religion-group basket dict for GUI tooltip display.
+		# The expense tooltip reads dmsd_disp_court_rel_dict via GetVariable;
+		# the religion basket is country-level, so it cannot come from the
+		# per-source display maps like the regional baskets do.
 		if = {
 			limit = { is_key_in_global_variable_map = { name = dmsd_court_reg1 target = scope:dmsd_rel_group } }
 			set_local_variable = { name = dmsd_disp_demand value = "global_variable_map(dmsd_court_reg1|scope:dmsd_rel_group)" }
-			set_variable = { name = dmsd_disp_court_rel_dict value = "global_variable_map(dmsd_demand_dict|local_var:dmsd_disp_demand)" }
-		}
 
-		# Diplo, stab, cult dict refs: same pattern, different registries
-		if = {
-			limit = { is_key_in_global_variable_map = { name = dmsd_diplo_reg1 target = scope:dmsd_disp_subcontinent } }
-			set_local_variable = { name = dmsd_disp_demand value = "global_variable_map(dmsd_diplo_reg1|scope:dmsd_disp_subcontinent)" }
-		} else = {
-			set_local_variable = { name = dmsd_disp_demand value = demand:dmsd_diplomatic_demand1 }
+			set_variable = {
+				name = dmsd_disp_court_rel_dict
+				value = "global_variable_map(dmsd_demand_dict|local_var:dmsd_disp_demand)"
+			}
 		}
-		set_variable = { name = dmsd_disp_diplo_dict value = "global_variable_map(dmsd_demand_dict|local_var:dmsd_disp_demand)" }
-
-		if = {
-			limit = { is_key_in_global_variable_map = { name = dmsd_stab_reg1 target = scope:dmsd_disp_subcontinent } }
-			set_local_variable = { name = dmsd_disp_demand value = "global_variable_map(dmsd_stab_reg1|scope:dmsd_disp_subcontinent)" }
-		} else = {
-			set_local_variable = { name = dmsd_disp_demand value = demand:dmsd_stability_demand1 }
-		}
-		set_variable = { name = dmsd_disp_stab_dict value = "global_variable_map(dmsd_demand_dict|local_var:dmsd_disp_demand)" }
 
 		# Court gold calculation.
 		# court_maintenance trigger gives raw slider position (0-1) but doesn't
@@ -91,11 +70,17 @@ dmsd_slider_demand.1 = {
 						value = var:dmsd_court_slider
 						multiply = 0.1
 						multiply = country_economical_base
-						divide = { value = 1 add = modifier:court_spending_efficiency min = 0.5 }
+
+						divide = {
+							value = 1
+							add = modifier:court_spending_efficiency
+							min = 0.5
+						}
 					}
 				}
 			}
 		}
+
 		# Efficiency decay applied to pre-decay gold; see constants above
 		change_local_variable = {
 			name = dmsd_gold
@@ -105,6 +90,7 @@ dmsd_slider_demand.1 = {
 				pow = @dmsd_eff_exponent
 			}
 		}
+
 		dmsd_accumulate_court = yes
 	}
 }
@@ -113,12 +99,13 @@ dmsd_slider_demand.1 = {
 # Gold = diplomatic_maintenance × cost × (1 + cost) × eco_base / efficiency
 # Vanilla applies diplomatic_spending_cost twice: once as the base rate, once
 # as a (1 + cost) multiplier.
+
 dmsd_slider_demand.2 = {
 	type = country_event
 	title = hidden_event.t
 	hidden = yes
-	immediate = {
 
+	immediate = {
 		set_local_variable = {
 			name = dmsd_gold
 			value = {
@@ -126,9 +113,15 @@ dmsd_slider_demand.2 = {
 				multiply = modifier:diplomatic_spending_cost
 				multiply = { value = 1 add = modifier:diplomatic_spending_cost }
 				multiply = country_economical_base
-				divide = { value = 1 add = modifier:diplomatic_upkeep_efficiency min = 0.5 }
+
+				divide = {
+					value = 1
+					add = modifier:diplomatic_upkeep_efficiency
+					min = 0.5
+				}
 			}
 		}
+
 		change_local_variable = {
 			name = dmsd_gold
 			multiply = {
@@ -137,6 +130,7 @@ dmsd_slider_demand.2 = {
 				pow = @dmsd_eff_exponent
 			}
 		}
+
 		dmsd_accumulate_diplo = yes
 	}
 }
@@ -144,12 +138,13 @@ dmsd_slider_demand.2 = {
 # --- Event .3: Stability spending ---
 # Same structure as court; uses inferred slider because the engine
 # has no stability_maintenance trigger exposed to script.
+
 dmsd_slider_demand.3 = {
 	type = country_event
 	title = hidden_event.t
 	hidden = yes
-	immediate = {
 
+	immediate = {
 		dmsd_infer_stab_slider = yes
 
 		set_local_variable = {
@@ -162,11 +157,17 @@ dmsd_slider_demand.3 = {
 						value = var:dmsd_stab_slider
 						multiply = 0.1
 						multiply = country_economical_base
-						divide = { value = 1 add = modifier:stability_cost_efficiency min = 0.5 }
+
+						divide = {
+							value = 1
+							add = modifier:stability_cost_efficiency
+							min = 0.5
+						}
 					}
 				}
 			}
 		}
+
 		change_local_variable = {
 			name = dmsd_gold
 			multiply = {
@@ -175,6 +176,7 @@ dmsd_slider_demand.3 = {
 				pow = @dmsd_eff_exponent
 			}
 		}
+
 		dmsd_accumulate_stab = yes
 	}
 }
@@ -190,18 +192,21 @@ dmsd_slider_demand.3 = {
 #   total = ARTIST_SALARY_BASE_FACTOR × tax_base × N² / 12 × modifiers
 # Country-wide artist_salary_modifier applies uniformly; per-character
 # modifiers (e.g. humble trait = -25%) are averaged across all artists.
+
 dmsd_slider_demand.5 = {
 	type = country_event
 	title = hidden_event.t
 	hidden = yes
-	immediate = {
 
+	immediate = {
 		set_local_variable = { name = dmsd_num_artists value = 0 }
 		set_local_variable = { name = dmsd_char_mod_sum value = 0 }
+
 		every_artist = {
 			change_local_variable = { name = dmsd_num_artists add = 1 }
 			change_local_variable = { name = dmsd_char_mod_sum add = modifier:artist_salary_modifier_on_character }
 		}
+
 		set_local_variable = {
 			name = dmsd_gold
 			value = {
@@ -211,13 +216,11 @@ dmsd_slider_demand.5 = {
 				multiply = local_var:dmsd_num_artists
 				multiply = local_var:dmsd_num_artists
 				divide = 12
+
 				multiply = {
 					value = 1
 					add = modifier:artist_salary_modifier
-					add = {
-						value = local_var:dmsd_char_mod_sum
-						divide = { value = local_var:dmsd_num_artists min = 1 }
-					}
+					add = { value = local_var:dmsd_char_mod_sum divide = { value = local_var:dmsd_num_artists min = 1 } }
 				}
 			}
 		}
@@ -233,15 +236,6 @@ dmsd_slider_demand.5 = {
 				pow = @dmsd_eff_exponent
 			}
 		}
-
-		capital = { sub_continent = { save_temporary_scope_as = dmsd_disp_subcontinent } }
-		if = {
-			limit = { is_key_in_global_variable_map = { name = dmsd_cult_reg1 target = scope:dmsd_disp_subcontinent } }
-			set_local_variable = { name = dmsd_disp_demand value = "global_variable_map(dmsd_cult_reg1|scope:dmsd_disp_subcontinent)" }
-		} else = {
-			set_local_variable = { name = dmsd_disp_demand value = demand:dmsd_cultural_demand1 }
-		}
-		set_variable = { name = dmsd_disp_cult_dict value = "global_variable_map(dmsd_demand_dict|local_var:dmsd_disp_demand)" }
 
 		dmsd_accumulate_culture = yes
 	}

@@ -54,8 +54,8 @@ template StabilityExpenseSettingParentTooltip {
 			# DMSD ADDITION: Concise demand with hover drill-downs
 			# ═════════════════════════════════════════════════════════════════
 			# Uses CEconomy GUI accessor for the actual slider value.
-			# Hover efficiency % → per-slider breakdown sub-tooltip
-			# Hover effective demand → dmsd_stab_goods_tooltip
+			# Hovering the efficiency % opens the per-slider breakdown sub-tooltip.
+			# Goods lists are shown per proximity source from the dmsd_prox_stab maps.
 
 			TooltipListBase = {
 				visible = "[HasGameRuleFlag('dmsd_demand_active')]"

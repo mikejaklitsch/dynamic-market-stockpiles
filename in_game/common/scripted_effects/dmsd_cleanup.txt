@@ -86,11 +86,7 @@ dmsd_full_cleanup = {
 			if = { limit = { has_variable = dmsd_last_stability } remove_variable = dmsd_last_stability }
 			if = { limit = { has_variable = dmsd_stab_slider } remove_variable = dmsd_stab_slider }
 			if = { limit = { has_variable = dmsd_cult_raw_gold } remove_variable = dmsd_cult_raw_gold }
-			if = { limit = { has_variable = dmsd_disp_court_reg_dict } remove_variable = dmsd_disp_court_reg_dict }
 			if = { limit = { has_variable = dmsd_disp_court_rel_dict } remove_variable = dmsd_disp_court_rel_dict }
-			if = { limit = { has_variable = dmsd_disp_diplo_dict } remove_variable = dmsd_disp_diplo_dict }
-			if = { limit = { has_variable = dmsd_disp_stab_dict } remove_variable = dmsd_disp_stab_dict }
-			if = { limit = { has_variable = dmsd_disp_cult_dict } remove_variable = dmsd_disp_cult_dict }
 			# Per-source display maps
 			if = { limit = { has_variable_map = dmsd_prox_court_dict } clear_variable_map = dmsd_prox_court_dict }
 			if = { limit = { has_variable_map = dmsd_prox_court_gold } clear_variable_map = dmsd_prox_court_gold }
@@ -121,20 +117,7 @@ dmsd_full_cleanup = {
 
 	if = { limit = { has_global_variable_map = dmsd_demand_dict } clear_global_variable_map = dmsd_demand_dict }
 
-	if = { limit = { has_global_variable_map = dmsd_tt_court_goods } clear_global_variable_map = dmsd_tt_court_goods }
-
-	if = {
-		limit = { has_global_variable_map = dmsd_tt_court_rel_goods }
-		clear_global_variable_map = dmsd_tt_court_rel_goods
-	}
-
-	if = { limit = { has_global_variable_map = dmsd_tt_diplo_goods } clear_global_variable_map = dmsd_tt_diplo_goods }
-
-	if = { limit = { has_global_variable_map = dmsd_tt_stab_goods } clear_global_variable_map = dmsd_tt_stab_goods }
-
 	if = { limit = { has_global_variable_map = dmsd_cult_reg1 } clear_global_variable_map = dmsd_cult_reg1 }
-
-	if = { limit = { has_global_variable_map = dmsd_tt_cult_goods } clear_global_variable_map = dmsd_tt_cult_goods }
 
 	if = { limit = { has_global_variable = dmsd_dict_ref } remove_global_variable = dmsd_dict_ref }
 

@@ -201,8 +201,8 @@ template ExpenseSettingTooltip {
 template dmsd_expense_extension {
 	# DMSD ADDITION: Concise demand with hover drill-downs
 	# ═════════════════════════════════════════════════════════════════
-	# Hover efficiency % → per-slider breakdown sub-tooltip
-	# Hover effective demand → goods list sub-tooltip (dmsd_*_goods_tooltip)
+	# Hovering the efficiency % opens the per-slider breakdown sub-tooltip.
+	# Goods lists are shown per proximity source from the dmsd_prox_* maps.
 
 	# ─── COURT ───
 	# Uses MaintenanceSetting.GetExpense for the actual gold spent,
