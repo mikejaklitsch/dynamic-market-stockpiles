@@ -1,6 +1,6 @@
 # Slider Demand
 
-Each country's court, diplomatic, stability, and cultural spending is converted monthly into temporary goods demand on markets. Phase 1 (per country) computes gold and accumulates it into market location maps; Phase 2 (global) converts the maps into demands. Execution order and rule gating are in [technical_summary.md](../technical_summary.md).
+Each country's court, diplomatic, stability, and cultural spending is converted monthly into temporary goods demand on markets. Phase 1 (per country) computes gold and accumulates it into market location maps; Phase 2 (global) converts the maps into demands, so spending measured at one pulse becomes market demand the following month. Execution order and rule gating are in [technical_summary.md](../technical_summary.md).
 
 ## Shared Machinery
 
@@ -68,17 +68,19 @@ Every month ends by recording the snapshot: `dmsd_last_stability = stability`. S
 
 ## Cultural (Event .5)
 
-Cultural spending is fundamentally different: cost comes from artist salaries, not a slider-times-eco_base formula.
+Cultural cost comes from artist salaries. Each artist's monthly salary is `0.025 * tax_base / artist_limit * (1 + artist_salary_modifier + char_modifier)`; the country-wide and per-character salary modifiers combine additively per artist. Summed over employed artists and scaled by the slider:
 
-**Gold formula:** `0.025 * cultural_maintenance * tax_base * N^2 / 12 * (1 + artist_salary_modifier + avg_char_modifier)`
+**Gold formula:** `0.025 * cultural_maintenance * tax_base / artist_limit * (N * (1 + artist_salary_modifier) + char_mod_sum)`
 
 Where:
 - `0.025` = the engine's `ARTIST_SALARY_BASE_FACTOR` define
 - `cultural_maintenance` = slider position (0-1)
 - `tax_base` = `country_tax_base`
-- `N` = number of employed artists; each artist's salary scales with `tax_base * N`, and there are N of them, hence N squared
-- `/ 12` converts the annual salary to monthly
-- `avg_char_modifier` = sum of per-character `artist_salary_modifier_on_character` across all artists, divided by `max(N, 1)`
+- `artist_limit` = `num_possible_artists`, the artist cap
+- `N` = number of employed artists
+- `char_mod_sum` = sum of per-character `artist_salary_modifier_on_character` across all artists
+
+Salary values are monthly. The formula was verified against two saves (2026-07-24), matching France exactly with mixed +25%/-25% character modifiers and a -20% country modifier.
 
 The pre-decay gold is stored as `var:dmsd_cult_raw_gold` on the country because the tooltip cannot recompute it (requires `every_artist` iteration).
 
