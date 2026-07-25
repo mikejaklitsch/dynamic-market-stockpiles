@@ -1,7 +1,7 @@
 {
     "name": "Dynamic Market Stockpiles and Demand (Dev)",
     "id": "DynamicMarketStockpilesAndDemand",
-    "version": "1.0",
+    "version": "2.0",
     "supported_game_version": "1.3.*",
     "short_description": "Scales stockpile capacity by market value and generates regional goods demand from slider spending. Both systems configurable via game rules.",
     "tags": [
