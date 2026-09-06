@@ -12,7 +12,8 @@
 # (weight × market_price) across all goods in the demand's weight dict.
 #
 # The swap system alternates between demand type pairs (reg1/reg2) monthly
-# to work around engine limitations on updating existing temporary demands.
+# to work around a display issue (found by MEIOU and Taxes) when a demand of
+# the same type is removed and re-added within one month.
 #
 # All four sliders follow the same structure. They cannot be parameterized
 # into a single effect because variable_map() reads fail when the map name

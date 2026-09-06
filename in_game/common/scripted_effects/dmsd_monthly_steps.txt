@@ -26,7 +26,6 @@ dmsd_update_stockpile_scaling = {
 
 	if = {
 		limit = { NOT = { has_game_rule = dmsd_stockpiles_disabled } }
-
 		every_market_in_world = {
 			location = {
 				# Trade-value base: 250 × sqrt(traded / 2500)
@@ -43,10 +42,7 @@ dmsd_update_stockpile_scaling = {
 				# Percentage bonus: trade base × pct modifier
 				set_local_variable = {
 					name = dws_pct_bonus
-					value = {
-						value = local_var:dws_trade_base
-						multiply = modifier:maximum_stockpile_capacity_modifier
-					}
+					value = { value = local_var:dws_trade_base multiply = modifier:maximum_stockpile_capacity_modifier }
 				}
 
 				# Vanilla residual flat capacity (everything except our modifiers)
@@ -54,10 +50,12 @@ dmsd_update_stockpile_scaling = {
 					name = dws_vanilla_flat
 					value = {
 						value = modifier:maximum_stockpile_capacity
+
 						if = {
 							limit = { has_variable = dws_last_size has_location_modifier = dws_stockpile_scaling }
 							subtract = var:dws_last_size
 						}
+
 						if = {
 							limit = { has_variable = dws_last_pct_size has_location_modifier = dws_stockpile_pct_bonus }
 							subtract = var:dws_last_pct_size
@@ -68,10 +66,7 @@ dmsd_update_stockpile_scaling = {
 				# Base modifier offsets vanilla flat so base total equals trade base
 				set_variable = {
 					name = dws_last_size
-					value = {
-						value = local_var:dws_trade_base
-						subtract = local_var:dws_vanilla_flat
-					}
+					value = { value = local_var:dws_trade_base subtract = local_var:dws_vanilla_flat }
 				}
 
 				add_location_modifier = {
@@ -82,10 +77,7 @@ dmsd_update_stockpile_scaling = {
 				}
 
 				# Percentage bonus modifier
-				set_variable = {
-					name = dws_last_pct_size
-					value = local_var:dws_pct_bonus
-				}
+				set_variable = { name = dws_last_pct_size value = local_var:dws_pct_bonus }
 
 				add_location_modifier = {
 					modifier = dws_stockpile_pct_bonus
@@ -97,7 +89,8 @@ dmsd_update_stockpile_scaling = {
 				add_to_global_variable_list = { name = dws_scaled_locations target = this }
 			}
 		}
-	} else = {
+	}
+	else = {
 		every_market_in_world = {
 			location = {
 				if = {
@@ -127,34 +120,24 @@ dmsd_init_check_effect = {
 	if = {
 		limit = {
 			OR = {
-				AND = {
-					has_game_rule = dmsd_slider_demand_disabled
-					NOT = { has_global_variable = dmsd_disabled }
-				}
+				AND = { has_game_rule = dmsd_slider_demand_disabled NOT = { has_global_variable = dmsd_disabled } }
 				AND = {
 					NOT = { has_game_rule = dmsd_slider_demand_disabled }
-					OR = {
-						NOT = { has_global_variable = dmsd_version }
-						global_var:dmsd_version < dmsd_version_value
-					}
+					OR = { NOT = { has_global_variable = dmsd_version } global_var:dmsd_version < dmsd_version_value }
 				}
 			}
 		}
+
 		if = {
 			limit = { has_game_rule = dmsd_slider_demand_disabled }
 			dmsd_full_cleanup = yes
 			set_global_variable = dmsd_disabled
-		} else = {
-			if = {
-				limit = { has_global_variable = dmsd_disabled }
-				remove_global_variable = dmsd_disabled
-			}
+		}
+		else = {
+			if = { limit = { has_global_variable = dmsd_disabled } remove_global_variable = dmsd_disabled }
 			dmsd_full_cleanup = yes
 			dmsd_init_demand_registry = yes
-			random_country = {
-				limit = { is_real_country = yes }
-				every_country = { dmsd_rebuild_prox_cache = yes }
-			}
+			random_country = { limit = { is_real_country = yes } every_country = { dmsd_rebuild_prox_cache = yes } }
 		}
 	}
 }
@@ -168,10 +151,7 @@ dmsd_init_check_effect = {
 
 dmsd_phase2_apply_effect = {
 	if = {
-		limit = {
-			has_global_variable = dmsd_version
-			NOT = { has_game_rule = dmsd_slider_demand_disabled }
-		}
+		limit = { has_global_variable = dmsd_version NOT = { has_game_rule = dmsd_slider_demand_disabled } }
 		every_market_in_world = {
 			save_temporary_scope_as = dmsd_market
 			location = {
@@ -194,12 +174,8 @@ dmsd_phase2_apply_effect = {
 dmsd_swap_toggle_effect = {
 	if = {
 		limit = { NOT = { has_game_rule = dmsd_slider_demand_disabled } }
-		if = {
-			limit = { has_global_variable = dmsd_swap }
-			remove_global_variable = dmsd_swap
-		} else = {
-			set_global_variable = dmsd_swap
-		}
+		if = { limit = { has_global_variable = dmsd_swap } remove_global_variable = dmsd_swap }
+		else = { set_global_variable = dmsd_swap }
 	}
 }
 
@@ -211,22 +187,24 @@ dmsd_swap_toggle_effect = {
 dmsd_cleanup_orphans_effect = {
 	if = {
 		limit = { NOT = { has_game_rule = dmsd_slider_demand_disabled } }
+
 		every_in_global_list = {
 			variable = dmsd_active_locations
 			limit = { is_market_center = no }
 			market = { save_temporary_scope_as = dmsd_market }
 			dmsd_strip_location = yes
 		}
+
 		clear_global_variable_list = dmsd_active_locations
 	}
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# STEP 8: RGO PRODUCTIVITY
+# STEP 9: RGO PRODUCTIVITY (PHASE 2)
 # ═══════════════════════════════════════════════════════════════════════════════
-# Penalizes RGO output when market price is below the good's base price.
-# Dispatches to either the threshold or always-replace variant.
-# Gated on game rule; runs cleanup once when disabled.
+# Processes the pending list built by Phase 1 country triage. Gated on game
+# rule; runs cleanup once when disabled, and reinitializes on re-enable or
+# first run (missing dmsd_rgo_loc_count).
 
 dmsd_rgo_productivity_effect = {
 	if = {
@@ -236,11 +214,16 @@ dmsd_rgo_productivity_effect = {
 			dmsd_rgo_full_cleanup = yes
 			set_global_variable = dmsd_rgo_cleaned
 		}
-	} else = {
+	}
+	else = {
+		if = { limit = { has_global_variable = dmsd_rgo_cleaned } remove_global_variable = dmsd_rgo_cleaned }
+
 		if = {
-			limit = { has_global_variable = dmsd_rgo_cleaned }
-			remove_global_variable = dmsd_rgo_cleaned
+			limit = { NOT = { has_global_variable = dmsd_rgo_loc_count } }
+			dmsd_rgo_init_vm = yes
+			dmsd_rgo_assign_countries = yes
+			dmsd_rgo_initial_pass = yes
 		}
-		dmsd_rgo_update = yes
+		else = { dmsd_rgo_update_pending = yes }
 	}
 }

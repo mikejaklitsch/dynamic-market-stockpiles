@@ -11,4 +11,4 @@ Two permanent location modifiers on the market center, replaced in place each re
 
 Orphaned locations (no longer market centers) have their modifiers and bookkeeping variables stripped monthly.
 
-**Defines:** vanilla ramps stockpile bleed from 50% fill to a max at 75% fill. The mod ramps linearly from 0% to 100% fill (bleed maxes at 5% of capacity at full), and sets `STOCKPILE_TRADE_IMPACT_ON_SUPPLY_SCALE = 0.25`, so a quarter of the bleed counts toward price-forming supply (max 2.5% at full).
+**Defines:** vanilla ramps supply from stockpile starting at 50% fill, maxing at 75% fill. The mod ramps linearly from 0% to 100% fill (supply from stockpile maxes at 5% of capacity at full), and sets `STOCKPILE_TRADE_IMPACT_ON_SUPPLY_SCALE = 0.25` (vanilla 0), so a quarter of it counts toward supply (max 1.25% at full).

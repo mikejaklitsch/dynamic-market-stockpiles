@@ -8,15 +8,16 @@
 #     1. Prox cache rebuild (player only, AI yearly)
 #     2. Phase 1 events (.1-.3, .5) - gold computation + accumulation into
 #        market location maps
+#     3. RGO Phase 1 - load-balanced price triage across all locations
 #
 #   weather_monthly_pulse fires SECOND (global scope, once):
-#     3. Stockpile scaling - adjusts market capacity modifiers
-#     4. Init check - detects rule disable, version mismatch, or first run;
+#     4. Stockpile scaling - adjusts market capacity modifiers
+#     5. Init check - detects rule disable, version mismatch, or first run;
 #        runs cleanup or full reinit as needed
-#     5. Phase 2 apply - reads this month's accumulated maps, applies demands
-#     6. Swap toggle - alternates demand type pair for next month
-#     7. Orphan cleanup - strips demands from locations no longer market centers
-#     8. RGO productivity - penalizes RGO output when price is below base
+#     6. Phase 2 apply - reads this month's accumulated maps, applies demands
+#     7. Swap toggle - alternates demand type pair for next month
+#     8. Orphan cleanup - strips demands from locations no longer market centers
+#     9. RGO Phase 2 - penalty computation on pending locations only
 #
 # GAME RULE GATING:
 #   - Every slider-demand codepath checks has_game_rule = dmsd_slider_demand_disabled
@@ -28,15 +29,11 @@
 # Step implementations are in common/scripted_effects/dmsd_monthly_steps.txt.
 
 on_game_start = {
-	on_actions = {
-		dmsd_on_game_start
-	}
+	on_actions = { dmsd_on_game_start }
 }
 
 weather_monthly_pulse = {
-	on_actions = {
-		dmsd_weather_monthly
-	}
+	on_actions = { dmsd_weather_monthly }
 }
 
 on_raw_material_changed = {
@@ -45,7 +42,10 @@ on_raw_material_changed = {
 
 dmsd_on_raw_material_changed = {
 	trigger = { NOT = { has_game_rule = dmsd_rgo_disabled } }
-	effect = { dmsd_rgo_on_raw_material_changed = yes }
+
+	effect = {
+		dmsd_rgo_on_raw_material_changed = yes
+	}
 }
 
 dmsd_on_game_start = {
@@ -53,7 +53,8 @@ dmsd_on_game_start = {
 		dmsd_update_stockpile_scaling = yes
 		dmsd_init_check_effect = yes
 		dmsd_rgo_init_vm = yes
-		dmsd_rgo_productivity_effect = yes
+		dmsd_rgo_assign_countries = yes
+		dmsd_rgo_initial_pass = yes
 	}
 }
 
@@ -72,19 +73,16 @@ monthly_country_pulse = {
 	on_actions = {
 		dmsd_prox_cache_player
 		dmsd_monthly_pulse
+		dmsd_rgo_country_tick
 	}
 }
 
 yearly_country_pulse = {
-	on_actions = {
-		dmsd_prox_cache_ai
-	}
+	on_actions = { dmsd_prox_cache_ai }
 }
 
 on_capital_moved = {
-	on_actions = {
-		dmsd_prox_cache_on_capital
-	}
+	on_actions = { dmsd_prox_cache_on_capital }
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -93,25 +91,51 @@ on_capital_moved = {
 
 dmsd_prox_cache_player = {
 	trigger = { is_ai = no NOT = { has_game_rule = dmsd_slider_demand_disabled } }
-	effect = { dmsd_rebuild_prox_cache = yes }
+
+	effect = {
+		dmsd_rebuild_prox_cache = yes
+	}
 }
 
 dmsd_prox_cache_ai = {
-	trigger = { is_ai = yes is_real_country = yes NOT = { has_game_rule = dmsd_slider_demand_disabled } }
-	effect = { dmsd_rebuild_prox_cache = yes }
+	trigger = {
+		is_ai = yes
+		is_real_country = yes
+		NOT = { has_game_rule = dmsd_slider_demand_disabled }
+	}
+
+	effect = {
+		dmsd_rebuild_prox_cache = yes
+	}
 }
 
 dmsd_prox_cache_on_capital = {
 	trigger = { NOT = { has_game_rule = dmsd_slider_demand_disabled } }
-	effect = { dmsd_rebuild_prox_cache = yes }
+
+	effect = {
+		dmsd_rebuild_prox_cache = yes
+	}
 }
 
 dmsd_monthly_pulse = {
-	trigger = { NOT = { has_game_rule = dmsd_slider_demand_disabled } }
+	trigger = {
+		NOT = { has_game_rule = dmsd_slider_demand_disabled }
+		has_global_variable = dmsd_version
+		NOT = { global_var:dmsd_version < dmsd_version_value }
+	}
+
 	events = {
 		dmsd_slider_demand.1
 		dmsd_slider_demand.2
 		dmsd_slider_demand.3
 		dmsd_slider_demand.5
+	}
+}
+
+dmsd_rgo_country_tick = {
+	trigger = { NOT = { has_game_rule = dmsd_rgo_disabled } }
+
+	effect = {
+		dmsd_rgo_lb_tick = yes
 	}
 }

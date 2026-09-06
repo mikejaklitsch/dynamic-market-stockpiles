@@ -184,7 +184,7 @@ for name, goods in CULT_REGIONAL.items():
 
 
 # Bump this when generated data changes to trigger save-game rebuild
-VERSION = 200
+VERSION = 110
 
 
 def fmt(v):

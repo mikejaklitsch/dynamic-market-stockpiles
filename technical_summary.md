@@ -16,8 +16,8 @@ All work is driven by on_action hooks defined in `in_game/common/on_action/dmsd_
 
 | Hook                      | Scope       | Work performed                                                                        |
 |---------------------------|-------------|---------------------------------------------------------------------------------------|
-| `on_game_start`           | global      | Stockpile scaling, init check, RGO index build, RGO update                            |
-| `monthly_country_pulse`   | per country | Proximity cache rebuild (players), Phase 1 spending events                            |
+| `on_game_start`           | global      | Stockpile scaling, init check, RGO index build, country assignment, RGO initial pass  |
+| `monthly_country_pulse`   | per country | Proximity cache rebuild (players), Phase 1 spending events, RGO price triage          |
 | `weather_monthly_pulse`   | global      | Stockpile scaling, init check, Phase 2 apply, swap toggle, orphan cleanup, RGO update |
 | `yearly_country_pulse`    | per country | Proximity cache rebuild (AI)                                                          |
 | `on_capital_moved`        | per country | Proximity cache rebuild                                                               |
@@ -28,9 +28,10 @@ All work is driven by on_action hooks defined in `in_game/common/on_action/dmsd_
 1. `monthly_country_pulse` fires first, once per country:
    - The proximity cache rebuilds (players only; AI rebuilds on `yearly_country_pulse`; all countries also rebuild on `on_capital_moved`, and event .1 rebuilds lazily if the cache is missing).
    - Phase 1 events run: .1 court, .2 diplomatic, .3 stability, .5 cultural (.4 was removed; the numbering gap is historical).
-2. `weather_monthly_pulse` fires second, globally, after all countries: stockpile scaling, init check, Phase 2 apply, swap toggle, orphan cleanup, RGO update.
+   - RGO Phase 1 runs: the load balancer hands this country its share of the location index and triages each one's price.
+2. `weather_monthly_pulse` fires second, globally, after all countries: stockpile scaling, init check, Phase 2 apply, swap toggle, orphan cleanup, RGO Phase 2.
 
-Phase 1 computes each country's spending gold and accumulates it into market location maps; Phase 2 reads those maps and applies market demands. The two-pulse split guarantees every country has accumulated before any market applies.
+Both systems use the same two-pulse split. Slider demand's Phase 1 computes each country's spending gold and accumulates it into market location maps; Phase 2 reads those maps and applies market demands, so every country has accumulated before any market applies. RGO's Phase 1 triages prices and queues changed locations onto per-good pending lists; Phase 2 computes penalties for only the queued locations.
 
 ## Init and Rule Toggles
 

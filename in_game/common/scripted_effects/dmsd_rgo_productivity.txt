@@ -1,226 +1,441 @@
 ﻿# ═══════════════════════════════════════════════════════════════════════════════
 # RGO PRODUCTIVITY: PRICE-LINKED OUTPUT PENALTY
 # ═══════════════════════════════════════════════════════════════════════════════
-# Percentage-based penalty using per-good global variable maps.
-# Reduces RGO output proportionally when market price falls below base.
-# Accounts for existing output modifiers so the penalty is a true percentage
-# of actual output, not a flat additive.
+# Reduces RGO output proportionally when market price falls below base price.
+# Phase 1 runs per-country through a load balancer, triaging locations whose
+# rounded price moved. Changed locations are routed to per-good pending lists
+# held on anchor locations. Phase 2 runs once globally, jumping from each good
+# to its anchor and iterating only that good's pending locations.
 
 @dmsd_rgo_sensitivity = 1.0
 @dmsd_rgo_price_step = 0.02
 @dmsd_rgo_threshold = 0.007
+@dmsd_rgo_neg_threshold = -0.007
+@dmsd_rgo_cycle = 12
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# PER-LOCATION PENALTY LOGIC
+# LOAD BALANCER
 # ═══════════════════════════════════════════════════════════════════════════════
-# Location scope, $good$ known.
-# Pre-filter: skip everything if price hasn't moved by more than price_step
-# since last evaluation. Modifier reads only run when price moved enough.
 
-dmsd_rgo_apply_pct = {
+dmsd_rgo_assign_countries = {
+	set_global_variable = { name = dmsd_rgo_country_count value = 0 }
+
+	every_country = {
+		set_variable = { name = dmsd_rgo_country_idx value = global_var:dmsd_rgo_country_count }
+		change_global_variable = { name = dmsd_rgo_country_count add = 1 }
+	}
+}
+
+dmsd_rgo_lb_tick = {
+	if = {
+		limit = {
+			has_variable = dmsd_rgo_country_idx
+			has_global_variable = dmsd_rgo_loc_count
+			global_var:dmsd_rgo_loc_count > 0
+			global_var:dmsd_rgo_country_count > 0
+		}
+
+		set_local_variable = {
+			name = dmsd_rgo_slice
+			value = {
+				value = global_var:dmsd_rgo_loc_count
+				divide = global_var:dmsd_rgo_country_count
+				ceiling = yes
+			}
+		}
+
+		set_local_variable = {
+			name = dmsd_rgo_share
+			value = {
+				value = local_var:dmsd_rgo_slice
+				divide = @dmsd_rgo_cycle
+				ceiling = yes
+			}
+		}
+
+		if = {
+			limit = { NOT = { has_global_variable = dmsd_months_elapsed } }
+			set_global_variable = {
+				name = dmsd_months_elapsed
+
+				value = {
+					value = current_year
+					subtract = 1337
+					multiply = 12
+					add = current_month
+					subtract = 4
+				}
+
+				days = 25
+			}
+		}
+
+		set_local_variable = {
+			name = dmsd_rgo_phase
+			value = { value = global_var:dmsd_months_elapsed modulo = @dmsd_rgo_cycle }
+		}
+
+		set_local_variable = {
+			name = dmsd_rgo_cur
+			value = {
+				value = var:dmsd_rgo_country_idx
+				multiply = local_var:dmsd_rgo_slice
+				add = { value = local_var:dmsd_rgo_phase multiply = local_var:dmsd_rgo_share }
+			}
+		}
+
+		set_local_variable = {
+			name = dmsd_rgo_end
+			value = {
+				value = var:dmsd_rgo_country_idx
+				add = 1
+				multiply = local_var:dmsd_rgo_slice
+				max = global_var:dmsd_rgo_loc_count
+			}
+		}
+
+		while = {
+			count = local_var:dmsd_rgo_share
+
+			if = {
+				limit = { local_var:dmsd_rgo_cur < local_var:dmsd_rgo_end }
+				"global_variable_map(dmsd_rgo_loc_index|local_var:dmsd_rgo_cur)" = { dmsd_rgo_triage = yes }
+			}
+
+			change_local_variable = { name = dmsd_rgo_cur add = 1 }
+		}
+	}
+}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 1: PRICE TRIAGE
+# ═══════════════════════════════════════════════════════════════════════════════
+# Routes changed locations to their good's anchor pending list.
+
+dmsd_rgo_triage = {
 	if = {
 		limit = { relative_raw_material_price < 0 }
 
 		set_local_variable = { name = dmsd_rgo_price value = relative_raw_material_price }
 		round_local_variable = { name = dmsd_rgo_price nearest = @dmsd_rgo_price_step }
 
-		# Price pre-filter: skip if rounded price hasn't changed
-		set_local_variable = { name = dmsd_rgo_skip value = 0 }
 		if = {
 			limit = {
-				has_variable = dmsd_rgo_last_price
-				local_var:dmsd_rgo_price = var:dmsd_rgo_last_price
+				OR = { NOT = { has_variable = dmsd_rgo_last_price } NOT = { local_var:dmsd_rgo_price = var:dmsd_rgo_last_price } }
 			}
-			set_local_variable = { name = dmsd_rgo_skip value = 1 }
-		}
 
-		if = { limit = { local_var:dmsd_rgo_skip = 0 }
 			set_variable = { name = dmsd_rgo_last_price value = local_var:dmsd_rgo_price }
-
-			set_local_variable = {
-				name = dmsd_rgo_ext
-				value = {
-					value = modifier:local_raw_material_output
-					add = owner.modifier:global_raw_material_output
-					add = modifier:local_$good$_output_modifier
-					add = owner.modifier:global_$good$_output_modifier
-				}
-			}
-			if = { limit = { has_variable = dmsd_rgo_applied }
-				change_local_variable = { name = dmsd_rgo_ext subtract = var:dmsd_rgo_applied }
-			}
-
-			set_local_variable = {
-				name = dmsd_rgo_target
-				value = {
-					value = relative_raw_material_price
-					multiply = @dmsd_rgo_sensitivity
-					multiply = { value = 1 add = local_var:dmsd_rgo_ext }
-				}
-			}
-
-			# Compare unrounded target against stored rounded applied
-			set_local_variable = { name = dmsd_rgo_delta value = { value = local_var:dmsd_rgo_target } }
-			if = { limit = { has_variable = dmsd_rgo_applied }
-				change_local_variable = { name = dmsd_rgo_delta subtract = var:dmsd_rgo_applied }
-			}
-
-			if = { limit = { OR = {
-				local_var:dmsd_rgo_delta > @dmsd_rgo_threshold
-				local_var:dmsd_rgo_delta < { value = @dmsd_rgo_threshold multiply = -1 }
-			} }
-
-				round_local_variable = { name = dmsd_rgo_target nearest = 0.01 }
-				set_variable = { name = dmsd_rgo_applied value = local_var:dmsd_rgo_target }
-				add_location_modifier = {
-					modifier = dmsd_rgo_price_penalty
-					years = -1
-					mode = replace
-					size = { value = local_var:dmsd_rgo_target }
-				}
-			}
+			save_temporary_scope_as = dmsd_rgo_queued
+			var:dmsd_rgo_anchor = { add_to_variable_list = { name = dmsd_rgo_pending target = scope:dmsd_rgo_queued } }
 		}
-	} else = {
-		if = { limit = { has_variable = dmsd_rgo_applied }
+	}
+	else = {
+		if = {
+			limit = { has_variable = dmsd_rgo_applied }
 			if = { limit = { has_location_modifier = dmsd_rgo_price_penalty } remove_location_modifier = dmsd_rgo_price_penalty }
 			remove_variable = dmsd_rgo_applied
 			remove_variable = dmsd_rgo_last_price
-
 		}
 	}
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# INIT: BUILD PER-GOOD GLOBAL VARIABLE MAPS
+# PHASE 2: PENALTY COMPUTATION
 # ═══════════════════════════════════════════════════════════════════════════════
+
+dmsd_rgo_apply_penalty = {
+	set_local_variable = {
+		name = dmsd_rgo_ext
+		value = {
+			value = modifier:local_raw_material_output
+			add = owner.modifier:global_raw_material_output
+			add = modifier:local_$good$_output_modifier
+			add = owner.modifier:global_$good$_output_modifier
+		}
+	}
+
+	if = {
+		limit = { has_variable = dmsd_rgo_applied }
+		change_local_variable = { name = dmsd_rgo_ext subtract = var:dmsd_rgo_applied }
+	}
+
+	set_local_variable = {
+		name = dmsd_rgo_target
+		value = {
+			value = relative_raw_material_price
+			multiply = @dmsd_rgo_sensitivity
+			multiply = { value = 1 add = local_var:dmsd_rgo_ext }
+		}
+	}
+
+	set_local_variable = { name = dmsd_rgo_delta value = local_var:dmsd_rgo_target }
+
+	if = {
+		limit = { has_variable = dmsd_rgo_applied }
+		change_local_variable = { name = dmsd_rgo_delta subtract = var:dmsd_rgo_applied }
+	}
+
+	if = {
+		limit = { OR = { local_var:dmsd_rgo_delta > @dmsd_rgo_threshold local_var:dmsd_rgo_delta < @dmsd_rgo_neg_threshold } }
+
+		round_local_variable = { name = dmsd_rgo_target nearest = 0.01 }
+		set_variable = { name = dmsd_rgo_applied value = local_var:dmsd_rgo_target }
+
+		add_location_modifier = {
+			modifier = dmsd_rgo_price_penalty
+			years = -1
+			mode = replace
+			size = { value = local_var:dmsd_rgo_target }
+		}
+	}
+}
+
+# Each good jumps to its anchor, iterates only that good's pending locations,
+# then clears the list.
+
+dmsd_rgo_process_pending = {
+	set_local_variable = { name = dmsd_rgo_good value = goods:$good$ }
+	if = {
+		limit = { is_key_in_global_variable_map = { name = dmsd_rgo_good_anchors target = local_var:dmsd_rgo_good } }
+		"global_variable_map(dmsd_rgo_good_anchors|local_var:dmsd_rgo_good)" = {
+			if = {
+				limit = { has_variable_list = dmsd_rgo_pending }
+				every_in_list = { variable = dmsd_rgo_pending dmsd_rgo_apply_penalty = { good = $good$ } }
+				clear_variable_list = dmsd_rgo_pending
+			}
+		}
+	}
+}
+
+dmsd_rgo_update_pending = {
+	dmsd_rgo_process_pending = { good = alum        }
+	dmsd_rgo_process_pending = { good = amber       }
+	dmsd_rgo_process_pending = { good = beeswax     }
+	dmsd_rgo_process_pending = { good = chili       }
+	dmsd_rgo_process_pending = { good = clay        }
+	dmsd_rgo_process_pending = { good = cloves      }
+	dmsd_rgo_process_pending = { good = coal        }
+	dmsd_rgo_process_pending = { good = cocoa       }
+	dmsd_rgo_process_pending = { good = coffee      }
+	dmsd_rgo_process_pending = { good = copper      }
+	dmsd_rgo_process_pending = { good = cotton      }
+	dmsd_rgo_process_pending = { good = dyes        }
+	dmsd_rgo_process_pending = { good = elephants   }
+	dmsd_rgo_process_pending = { good = fiber_crops }
+	dmsd_rgo_process_pending = { good = fish        }
+	dmsd_rgo_process_pending = { good = fruit       }
+	dmsd_rgo_process_pending = { good = fur         }
+	dmsd_rgo_process_pending = { good = gems        }
+	dmsd_rgo_process_pending = { good = goods_gold  }
+	dmsd_rgo_process_pending = { good = horses      }
+	dmsd_rgo_process_pending = { good = incense     }
+	dmsd_rgo_process_pending = { good = iron        }
+	dmsd_rgo_process_pending = { good = ivory       }
+	dmsd_rgo_process_pending = { good = lead        }
+	dmsd_rgo_process_pending = { good = legumes     }
+	dmsd_rgo_process_pending = { good = livestock   }
+	dmsd_rgo_process_pending = { good = lumber      }
+	dmsd_rgo_process_pending = { good = maize       }
+	dmsd_rgo_process_pending = { good = marble      }
+	dmsd_rgo_process_pending = { good = medicaments }
+	dmsd_rgo_process_pending = { good = mercury     }
+	dmsd_rgo_process_pending = { good = millet      }
+	dmsd_rgo_process_pending = { good = olives      }
+	dmsd_rgo_process_pending = { good = pearls      }
+	dmsd_rgo_process_pending = { good = pepper      }
+	dmsd_rgo_process_pending = { good = potato      }
+	dmsd_rgo_process_pending = { good = rice        }
+	dmsd_rgo_process_pending = { good = saffron     }
+	dmsd_rgo_process_pending = { good = salt        }
+	dmsd_rgo_process_pending = { good = saltpeter   }
+	dmsd_rgo_process_pending = { good = sand        }
+	dmsd_rgo_process_pending = { good = silk        }
+	dmsd_rgo_process_pending = { good = silver      }
+	dmsd_rgo_process_pending = { good = stone       }
+	dmsd_rgo_process_pending = { good = sugar       }
+	dmsd_rgo_process_pending = { good = tea         }
+	dmsd_rgo_process_pending = { good = tin         }
+	dmsd_rgo_process_pending = { good = tobacco     }
+	dmsd_rgo_process_pending = { good = wheat       }
+	dmsd_rgo_process_pending = { good = wild_game   }
+	dmsd_rgo_process_pending = { good = wine        }
+	dmsd_rgo_process_pending = { good = wool        }
+}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INIT: PER-GOOD MAPS, ANCHORS, AND UNIFIED LOCATION INDEX
+# ═══════════════════════════════════════════════════════════════════════════════
+# Each good gets an anchor location (its first producer). Every producer of
+# that good stores the anchor reference so triage can route to the right
+# pending list without knowing the good.
 
 dmsd_rgo_init_vm_good = {
 	if = { limit = { has_global_variable_map = dmsd_rgo_vm_$good$ } clear_global_variable_map = dmsd_rgo_vm_$good$ }
+
+	set_local_variable = { name = dmsd_rgo_got_anchor value = 0 }
+
 	every_location_in_the_world = {
 		limit = { has_owner = yes raw_material = goods:$good$ }
-		add_to_global_variable_map = { name = dmsd_rgo_vm_$good$ key = this value = 1 }
+
+		add_to_global_variable_map = {
+			name = dmsd_rgo_vm_$good$
+			key = this
+			value = 1
+		}
+		add_to_global_variable_map = {
+			name = dmsd_rgo_loc_index
+			key = global_var:dmsd_rgo_loc_count
+			value = this
+		}
+
+		change_global_variable = { name = dmsd_rgo_loc_count add = 1 }
+
+		if = {
+			limit = { local_var:dmsd_rgo_got_anchor = 0 }
+			save_temporary_scope_as = dmsd_rgo_good_anchor
+			set_local_variable = { name = dmsd_rgo_got_anchor value = 1 }
+
+			add_to_global_variable_map = {
+				name = dmsd_rgo_good_anchors
+				key = goods:$good$
+				value = this
+			}
+		}
+
+		set_variable = { name = dmsd_rgo_anchor value = scope:dmsd_rgo_good_anchor }
 	}
 }
 
 dmsd_rgo_init_vm = {
-	dmsd_rgo_init_vm_good = { good = alum }
-	dmsd_rgo_init_vm_good = { good = amber }
-	dmsd_rgo_init_vm_good = { good = beeswax }
-	dmsd_rgo_init_vm_good = { good = chili }
-	dmsd_rgo_init_vm_good = { good = clay }
-	dmsd_rgo_init_vm_good = { good = cloves }
-	dmsd_rgo_init_vm_good = { good = coal }
-	dmsd_rgo_init_vm_good = { good = cocoa }
-	dmsd_rgo_init_vm_good = { good = coffee }
-	dmsd_rgo_init_vm_good = { good = copper }
-	dmsd_rgo_init_vm_good = { good = cotton }
-	dmsd_rgo_init_vm_good = { good = dyes }
-	dmsd_rgo_init_vm_good = { good = elephants }
+	if = { limit = { has_global_variable_map = dmsd_rgo_loc_index }    clear_global_variable_map = dmsd_rgo_loc_index    }
+	if = { limit = { has_global_variable_map = dmsd_rgo_good_anchors } clear_global_variable_map = dmsd_rgo_good_anchors }
+
+	set_global_variable = { name = dmsd_rgo_loc_count value = 0 }
+
+	dmsd_rgo_init_vm_good = { good = alum        }
+	dmsd_rgo_init_vm_good = { good = amber       }
+	dmsd_rgo_init_vm_good = { good = beeswax     }
+	dmsd_rgo_init_vm_good = { good = chili       }
+	dmsd_rgo_init_vm_good = { good = clay        }
+	dmsd_rgo_init_vm_good = { good = cloves      }
+	dmsd_rgo_init_vm_good = { good = coal        }
+	dmsd_rgo_init_vm_good = { good = cocoa       }
+	dmsd_rgo_init_vm_good = { good = coffee      }
+	dmsd_rgo_init_vm_good = { good = copper      }
+	dmsd_rgo_init_vm_good = { good = cotton      }
+	dmsd_rgo_init_vm_good = { good = dyes        }
+	dmsd_rgo_init_vm_good = { good = elephants   }
 	dmsd_rgo_init_vm_good = { good = fiber_crops }
-	dmsd_rgo_init_vm_good = { good = fish }
-	dmsd_rgo_init_vm_good = { good = fruit }
-	dmsd_rgo_init_vm_good = { good = fur }
-	dmsd_rgo_init_vm_good = { good = gems }
-	dmsd_rgo_init_vm_good = { good = goods_gold }
-	dmsd_rgo_init_vm_good = { good = horses }
-	dmsd_rgo_init_vm_good = { good = incense }
-	dmsd_rgo_init_vm_good = { good = iron }
-	dmsd_rgo_init_vm_good = { good = ivory }
-	dmsd_rgo_init_vm_good = { good = lead }
-	dmsd_rgo_init_vm_good = { good = legumes }
-	dmsd_rgo_init_vm_good = { good = livestock }
-	dmsd_rgo_init_vm_good = { good = lumber }
-	dmsd_rgo_init_vm_good = { good = maize }
-	dmsd_rgo_init_vm_good = { good = marble }
+	dmsd_rgo_init_vm_good = { good = fish        }
+	dmsd_rgo_init_vm_good = { good = fruit       }
+	dmsd_rgo_init_vm_good = { good = fur         }
+	dmsd_rgo_init_vm_good = { good = gems        }
+	dmsd_rgo_init_vm_good = { good = goods_gold  }
+	dmsd_rgo_init_vm_good = { good = horses      }
+	dmsd_rgo_init_vm_good = { good = incense     }
+	dmsd_rgo_init_vm_good = { good = iron        }
+	dmsd_rgo_init_vm_good = { good = ivory       }
+	dmsd_rgo_init_vm_good = { good = lead        }
+	dmsd_rgo_init_vm_good = { good = legumes     }
+	dmsd_rgo_init_vm_good = { good = livestock   }
+	dmsd_rgo_init_vm_good = { good = lumber      }
+	dmsd_rgo_init_vm_good = { good = maize       }
+	dmsd_rgo_init_vm_good = { good = marble      }
 	dmsd_rgo_init_vm_good = { good = medicaments }
-	dmsd_rgo_init_vm_good = { good = mercury }
-	dmsd_rgo_init_vm_good = { good = millet }
-	dmsd_rgo_init_vm_good = { good = olives }
-	dmsd_rgo_init_vm_good = { good = pearls }
-	dmsd_rgo_init_vm_good = { good = pepper }
-	dmsd_rgo_init_vm_good = { good = potato }
-	dmsd_rgo_init_vm_good = { good = rice }
-	dmsd_rgo_init_vm_good = { good = saffron }
-	dmsd_rgo_init_vm_good = { good = salt }
-	dmsd_rgo_init_vm_good = { good = saltpeter }
-	dmsd_rgo_init_vm_good = { good = sand }
-	dmsd_rgo_init_vm_good = { good = silk }
-	dmsd_rgo_init_vm_good = { good = silver }
-	dmsd_rgo_init_vm_good = { good = stone }
-	dmsd_rgo_init_vm_good = { good = sugar }
-	dmsd_rgo_init_vm_good = { good = tea }
-	dmsd_rgo_init_vm_good = { good = tin }
-	dmsd_rgo_init_vm_good = { good = tobacco }
-	dmsd_rgo_init_vm_good = { good = wheat }
-	dmsd_rgo_init_vm_good = { good = wild_game }
-	dmsd_rgo_init_vm_good = { good = wine }
-	dmsd_rgo_init_vm_good = { good = wool }
+	dmsd_rgo_init_vm_good = { good = mercury     }
+	dmsd_rgo_init_vm_good = { good = millet      }
+	dmsd_rgo_init_vm_good = { good = olives      }
+	dmsd_rgo_init_vm_good = { good = pearls      }
+	dmsd_rgo_init_vm_good = { good = pepper      }
+	dmsd_rgo_init_vm_good = { good = potato      }
+	dmsd_rgo_init_vm_good = { good = rice        }
+	dmsd_rgo_init_vm_good = { good = saffron     }
+	dmsd_rgo_init_vm_good = { good = salt        }
+	dmsd_rgo_init_vm_good = { good = saltpeter   }
+	dmsd_rgo_init_vm_good = { good = sand        }
+	dmsd_rgo_init_vm_good = { good = silk        }
+	dmsd_rgo_init_vm_good = { good = silver      }
+	dmsd_rgo_init_vm_good = { good = stone       }
+	dmsd_rgo_init_vm_good = { good = sugar       }
+	dmsd_rgo_init_vm_good = { good = tea         }
+	dmsd_rgo_init_vm_good = { good = tin         }
+	dmsd_rgo_init_vm_good = { good = tobacco     }
+	dmsd_rgo_init_vm_good = { good = wheat       }
+	dmsd_rgo_init_vm_good = { good = wild_game   }
+	dmsd_rgo_init_vm_good = { good = wine        }
+	dmsd_rgo_init_vm_good = { good = wool        }
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# MONTHLY TICK: PROCESS PER-GOOD
+# INIT: FIRST-RUN FULL PASS
 # ═══════════════════════════════════════════════════════════════════════════════
+# Runs once at game start or re-enable to apply penalties immediately rather
+# than waiting for the load balancer to cycle through every location.
 
-dmsd_rgo_process = {
+dmsd_rgo_initial_good = {
 	every_key_in_global_variable_map = {
 		variable = dmsd_rgo_vm_$good$
-		dmsd_rgo_apply_pct = { good = $good$ }
+		limit = { relative_raw_material_price < 0 }
+		set_local_variable = { name = dmsd_rgo_price value = relative_raw_material_price }
+		round_local_variable = { name = dmsd_rgo_price nearest = @dmsd_rgo_price_step }
+		set_variable = { name = dmsd_rgo_last_price value = local_var:dmsd_rgo_price }
+		dmsd_rgo_apply_penalty = { good = $good$ }
 	}
 }
 
-dmsd_rgo_update = {
-	dmsd_rgo_process = { good = alum }
-	dmsd_rgo_process = { good = amber }
-	dmsd_rgo_process = { good = beeswax }
-	dmsd_rgo_process = { good = chili }
-	dmsd_rgo_process = { good = clay }
-	dmsd_rgo_process = { good = cloves }
-	dmsd_rgo_process = { good = coal }
-	dmsd_rgo_process = { good = cocoa }
-	dmsd_rgo_process = { good = coffee }
-	dmsd_rgo_process = { good = copper }
-	dmsd_rgo_process = { good = cotton }
-	dmsd_rgo_process = { good = dyes }
-	dmsd_rgo_process = { good = elephants }
-	dmsd_rgo_process = { good = fiber_crops }
-	dmsd_rgo_process = { good = fish }
-	dmsd_rgo_process = { good = fruit }
-	dmsd_rgo_process = { good = fur }
-	dmsd_rgo_process = { good = gems }
-	dmsd_rgo_process = { good = goods_gold }
-	dmsd_rgo_process = { good = horses }
-	dmsd_rgo_process = { good = incense }
-	dmsd_rgo_process = { good = iron }
-	dmsd_rgo_process = { good = ivory }
-	dmsd_rgo_process = { good = lead }
-	dmsd_rgo_process = { good = legumes }
-	dmsd_rgo_process = { good = livestock }
-	dmsd_rgo_process = { good = lumber }
-	dmsd_rgo_process = { good = maize }
-	dmsd_rgo_process = { good = marble }
-	dmsd_rgo_process = { good = medicaments }
-	dmsd_rgo_process = { good = mercury }
-	dmsd_rgo_process = { good = millet }
-	dmsd_rgo_process = { good = olives }
-	dmsd_rgo_process = { good = pearls }
-	dmsd_rgo_process = { good = pepper }
-	dmsd_rgo_process = { good = potato }
-	dmsd_rgo_process = { good = rice }
-	dmsd_rgo_process = { good = saffron }
-	dmsd_rgo_process = { good = salt }
-	dmsd_rgo_process = { good = saltpeter }
-	dmsd_rgo_process = { good = sand }
-	dmsd_rgo_process = { good = silk }
-	dmsd_rgo_process = { good = silver }
-	dmsd_rgo_process = { good = stone }
-	dmsd_rgo_process = { good = sugar }
-	dmsd_rgo_process = { good = tea }
-	dmsd_rgo_process = { good = tin }
-	dmsd_rgo_process = { good = tobacco }
-	dmsd_rgo_process = { good = wheat }
-	dmsd_rgo_process = { good = wild_game }
-	dmsd_rgo_process = { good = wine }
-	dmsd_rgo_process = { good = wool }
+dmsd_rgo_initial_pass = {
+	dmsd_rgo_initial_good = { good = alum        }
+	dmsd_rgo_initial_good = { good = amber       }
+	dmsd_rgo_initial_good = { good = beeswax     }
+	dmsd_rgo_initial_good = { good = chili       }
+	dmsd_rgo_initial_good = { good = clay        }
+	dmsd_rgo_initial_good = { good = cloves      }
+	dmsd_rgo_initial_good = { good = coal        }
+	dmsd_rgo_initial_good = { good = cocoa       }
+	dmsd_rgo_initial_good = { good = coffee      }
+	dmsd_rgo_initial_good = { good = copper      }
+	dmsd_rgo_initial_good = { good = cotton      }
+	dmsd_rgo_initial_good = { good = dyes        }
+	dmsd_rgo_initial_good = { good = elephants   }
+	dmsd_rgo_initial_good = { good = fiber_crops }
+	dmsd_rgo_initial_good = { good = fish        }
+	dmsd_rgo_initial_good = { good = fruit       }
+	dmsd_rgo_initial_good = { good = fur         }
+	dmsd_rgo_initial_good = { good = gems        }
+	dmsd_rgo_initial_good = { good = goods_gold  }
+	dmsd_rgo_initial_good = { good = horses      }
+	dmsd_rgo_initial_good = { good = incense     }
+	dmsd_rgo_initial_good = { good = iron        }
+	dmsd_rgo_initial_good = { good = ivory       }
+	dmsd_rgo_initial_good = { good = lead        }
+	dmsd_rgo_initial_good = { good = legumes     }
+	dmsd_rgo_initial_good = { good = livestock   }
+	dmsd_rgo_initial_good = { good = lumber      }
+	dmsd_rgo_initial_good = { good = maize       }
+	dmsd_rgo_initial_good = { good = marble      }
+	dmsd_rgo_initial_good = { good = medicaments }
+	dmsd_rgo_initial_good = { good = mercury     }
+	dmsd_rgo_initial_good = { good = millet      }
+	dmsd_rgo_initial_good = { good = olives      }
+	dmsd_rgo_initial_good = { good = pearls      }
+	dmsd_rgo_initial_good = { good = pepper      }
+	dmsd_rgo_initial_good = { good = potato      }
+	dmsd_rgo_initial_good = { good = rice        }
+	dmsd_rgo_initial_good = { good = saffron     }
+	dmsd_rgo_initial_good = { good = salt        }
+	dmsd_rgo_initial_good = { good = saltpeter   }
+	dmsd_rgo_initial_good = { good = sand        }
+	dmsd_rgo_initial_good = { good = silk        }
+	dmsd_rgo_initial_good = { good = silver      }
+	dmsd_rgo_initial_good = { good = stone       }
+	dmsd_rgo_initial_good = { good = sugar       }
+	dmsd_rgo_initial_good = { good = tea         }
+	dmsd_rgo_initial_good = { good = tin         }
+	dmsd_rgo_initial_good = { good = tobacco     }
+	dmsd_rgo_initial_good = { good = wheat       }
+	dmsd_rgo_initial_good = { good = wild_game   }
+	dmsd_rgo_initial_good = { good = wine        }
+	dmsd_rgo_initial_good = { good = wool        }
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -228,64 +443,87 @@ dmsd_rgo_update = {
 # ═══════════════════════════════════════════════════════════════════════════════
 # on_raw_material_changed: root = location, scope:old_goods, scope:new_goods
 # Brute-force remove from all maps (O(1) each), add to new good's map.
+# Updates the anchor reference and appends to the unified index for newly
+# colonized locations.
 
 dmsd_rgo_vm_add = {
-	add_to_global_variable_map = { name = dmsd_rgo_vm_$good$ key = scope:dmsd_rgo_changed_loc value = 1 }
+	set_local_variable = { name = dmsd_rgo_good value = goods:$good$ }
+
+	add_to_global_variable_map = {
+		name = dmsd_rgo_vm_$good$
+		key = scope:dmsd_rgo_changed_loc
+		value = 1
+	}
+
+	if = {
+		limit = { is_key_in_global_variable_map = { name = dmsd_rgo_good_anchors target = local_var:dmsd_rgo_good } }
+		scope:dmsd_rgo_changed_loc = {
+			set_variable = { name = dmsd_rgo_anchor value = "global_variable_map(dmsd_rgo_good_anchors|local_var:dmsd_rgo_good)" }
+		}
+	}
+	else = {
+		add_to_global_variable_map = {
+			name = dmsd_rgo_good_anchors
+			key = local_var:dmsd_rgo_good
+			value = scope:dmsd_rgo_changed_loc
+		}
+		scope:dmsd_rgo_changed_loc = { set_variable = { name = dmsd_rgo_anchor value = scope:dmsd_rgo_changed_loc } }
+	}
 }
 
 dmsd_rgo_vm_remove_all = {
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_alum key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_amber key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_beeswax key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_chili key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_clay key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_cloves key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_coal key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_cocoa key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_coffee key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_copper key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_cotton key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_dyes key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_elephants key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_alum        key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_amber       key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_beeswax     key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_chili       key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_clay        key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_cloves      key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_coal        key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_cocoa       key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_coffee      key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_copper      key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_cotton      key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_dyes        key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_elephants   key = root }
 	remove_from_global_variable_map = { name = dmsd_rgo_vm_fiber_crops key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_fish key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_fruit key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_fur key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_gems key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_goods_gold key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_horses key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_incense key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_iron key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_ivory key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_lead key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_legumes key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_livestock key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_lumber key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_maize key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_marble key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_fish        key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_fruit       key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_fur         key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_gems        key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_goods_gold  key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_horses      key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_incense     key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_iron        key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_ivory       key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_lead        key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_legumes     key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_livestock   key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_lumber      key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_maize       key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_marble      key = root }
 	remove_from_global_variable_map = { name = dmsd_rgo_vm_medicaments key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_mercury key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_millet key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_olives key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_pearls key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_pepper key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_potato key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_rice key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_saffron key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_salt key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_saltpeter key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_sand key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_silk key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_silver key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_stone key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_sugar key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_tea key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_tin key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_tobacco key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_wheat key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_wild_game key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_wine key = root }
-	remove_from_global_variable_map = { name = dmsd_rgo_vm_wool key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_mercury     key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_millet      key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_olives      key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_pearls      key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_pepper      key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_potato      key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_rice        key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_saffron     key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_salt        key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_saltpeter   key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_sand        key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_silk        key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_silver      key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_stone       key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_sugar       key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_tea         key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_tin         key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_tobacco     key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_wheat       key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_wild_game   key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_wine        key = root }
+	remove_from_global_variable_map = { name = dmsd_rgo_vm_wool        key = root }
 }
 
 dmsd_rgo_on_raw_material_changed = {
@@ -293,63 +531,81 @@ dmsd_rgo_on_raw_material_changed = {
 
 	dmsd_rgo_vm_remove_all = yes
 
+	if = {
+		limit = { NOT = { has_variable = dmsd_rgo_anchor } has_global_variable = dmsd_rgo_loc_count }
+
+		add_to_global_variable_map = {
+			name = dmsd_rgo_loc_index
+			key = global_var:dmsd_rgo_loc_count
+			value = scope:dmsd_rgo_changed_loc
+		}
+
+		change_global_variable = { name = dmsd_rgo_loc_count add = 1 }
+	}
+
 	if = { limit = { raw_material = goods:alum } dmsd_rgo_vm_add = { good = alum } }
-	else_if = { limit = { raw_material = goods:amber } dmsd_rgo_vm_add = { good = amber } }
-	else_if = { limit = { raw_material = goods:beeswax } dmsd_rgo_vm_add = { good = beeswax } }
-	else_if = { limit = { raw_material = goods:chili } dmsd_rgo_vm_add = { good = chili } }
-	else_if = { limit = { raw_material = goods:clay } dmsd_rgo_vm_add = { good = clay } }
-	else_if = { limit = { raw_material = goods:cloves } dmsd_rgo_vm_add = { good = cloves } }
-	else_if = { limit = { raw_material = goods:coal } dmsd_rgo_vm_add = { good = coal } }
-	else_if = { limit = { raw_material = goods:cocoa } dmsd_rgo_vm_add = { good = cocoa } }
-	else_if = { limit = { raw_material = goods:coffee } dmsd_rgo_vm_add = { good = coffee } }
-	else_if = { limit = { raw_material = goods:copper } dmsd_rgo_vm_add = { good = copper } }
-	else_if = { limit = { raw_material = goods:cotton } dmsd_rgo_vm_add = { good = cotton } }
-	else_if = { limit = { raw_material = goods:dyes } dmsd_rgo_vm_add = { good = dyes } }
-	else_if = { limit = { raw_material = goods:elephants } dmsd_rgo_vm_add = { good = elephants } }
+	else_if = { limit = { raw_material = goods:amber }       dmsd_rgo_vm_add = { good = amber }       }
+	else_if = { limit = { raw_material = goods:beeswax }     dmsd_rgo_vm_add = { good = beeswax }     }
+	else_if = { limit = { raw_material = goods:chili }       dmsd_rgo_vm_add = { good = chili }       }
+	else_if = { limit = { raw_material = goods:clay }        dmsd_rgo_vm_add = { good = clay }        }
+	else_if = { limit = { raw_material = goods:cloves }      dmsd_rgo_vm_add = { good = cloves }      }
+	else_if = { limit = { raw_material = goods:coal }        dmsd_rgo_vm_add = { good = coal }        }
+	else_if = { limit = { raw_material = goods:cocoa }       dmsd_rgo_vm_add = { good = cocoa }       }
+	else_if = { limit = { raw_material = goods:coffee }      dmsd_rgo_vm_add = { good = coffee }      }
+	else_if = { limit = { raw_material = goods:copper }      dmsd_rgo_vm_add = { good = copper }      }
+	else_if = { limit = { raw_material = goods:cotton }      dmsd_rgo_vm_add = { good = cotton }      }
+	else_if = { limit = { raw_material = goods:dyes }        dmsd_rgo_vm_add = { good = dyes }        }
+	else_if = { limit = { raw_material = goods:elephants }   dmsd_rgo_vm_add = { good = elephants }   }
 	else_if = { limit = { raw_material = goods:fiber_crops } dmsd_rgo_vm_add = { good = fiber_crops } }
-	else_if = { limit = { raw_material = goods:fish } dmsd_rgo_vm_add = { good = fish } }
-	else_if = { limit = { raw_material = goods:fruit } dmsd_rgo_vm_add = { good = fruit } }
-	else_if = { limit = { raw_material = goods:fur } dmsd_rgo_vm_add = { good = fur } }
-	else_if = { limit = { raw_material = goods:gems } dmsd_rgo_vm_add = { good = gems } }
-	else_if = { limit = { raw_material = goods:goods_gold } dmsd_rgo_vm_add = { good = goods_gold } }
-	else_if = { limit = { raw_material = goods:horses } dmsd_rgo_vm_add = { good = horses } }
-	else_if = { limit = { raw_material = goods:incense } dmsd_rgo_vm_add = { good = incense } }
-	else_if = { limit = { raw_material = goods:iron } dmsd_rgo_vm_add = { good = iron } }
-	else_if = { limit = { raw_material = goods:ivory } dmsd_rgo_vm_add = { good = ivory } }
-	else_if = { limit = { raw_material = goods:lead } dmsd_rgo_vm_add = { good = lead } }
-	else_if = { limit = { raw_material = goods:legumes } dmsd_rgo_vm_add = { good = legumes } }
-	else_if = { limit = { raw_material = goods:livestock } dmsd_rgo_vm_add = { good = livestock } }
-	else_if = { limit = { raw_material = goods:lumber } dmsd_rgo_vm_add = { good = lumber } }
-	else_if = { limit = { raw_material = goods:maize } dmsd_rgo_vm_add = { good = maize } }
-	else_if = { limit = { raw_material = goods:marble } dmsd_rgo_vm_add = { good = marble } }
+	else_if = { limit = { raw_material = goods:fish }        dmsd_rgo_vm_add = { good = fish }        }
+	else_if = { limit = { raw_material = goods:fruit }       dmsd_rgo_vm_add = { good = fruit }       }
+	else_if = { limit = { raw_material = goods:fur }         dmsd_rgo_vm_add = { good = fur }         }
+	else_if = { limit = { raw_material = goods:gems }        dmsd_rgo_vm_add = { good = gems }        }
+	else_if = { limit = { raw_material = goods:goods_gold }  dmsd_rgo_vm_add = { good = goods_gold }  }
+	else_if = { limit = { raw_material = goods:horses }      dmsd_rgo_vm_add = { good = horses }      }
+	else_if = { limit = { raw_material = goods:incense }     dmsd_rgo_vm_add = { good = incense }     }
+	else_if = { limit = { raw_material = goods:iron }        dmsd_rgo_vm_add = { good = iron }        }
+	else_if = { limit = { raw_material = goods:ivory }       dmsd_rgo_vm_add = { good = ivory }       }
+	else_if = { limit = { raw_material = goods:lead }        dmsd_rgo_vm_add = { good = lead }        }
+	else_if = { limit = { raw_material = goods:legumes }     dmsd_rgo_vm_add = { good = legumes }     }
+	else_if = { limit = { raw_material = goods:livestock }   dmsd_rgo_vm_add = { good = livestock }   }
+	else_if = { limit = { raw_material = goods:lumber }      dmsd_rgo_vm_add = { good = lumber }      }
+	else_if = { limit = { raw_material = goods:maize }       dmsd_rgo_vm_add = { good = maize }       }
+	else_if = { limit = { raw_material = goods:marble }      dmsd_rgo_vm_add = { good = marble }      }
 	else_if = { limit = { raw_material = goods:medicaments } dmsd_rgo_vm_add = { good = medicaments } }
-	else_if = { limit = { raw_material = goods:mercury } dmsd_rgo_vm_add = { good = mercury } }
-	else_if = { limit = { raw_material = goods:millet } dmsd_rgo_vm_add = { good = millet } }
-	else_if = { limit = { raw_material = goods:olives } dmsd_rgo_vm_add = { good = olives } }
-	else_if = { limit = { raw_material = goods:pearls } dmsd_rgo_vm_add = { good = pearls } }
-	else_if = { limit = { raw_material = goods:pepper } dmsd_rgo_vm_add = { good = pepper } }
-	else_if = { limit = { raw_material = goods:potato } dmsd_rgo_vm_add = { good = potato } }
-	else_if = { limit = { raw_material = goods:rice } dmsd_rgo_vm_add = { good = rice } }
-	else_if = { limit = { raw_material = goods:saffron } dmsd_rgo_vm_add = { good = saffron } }
-	else_if = { limit = { raw_material = goods:salt } dmsd_rgo_vm_add = { good = salt } }
-	else_if = { limit = { raw_material = goods:saltpeter } dmsd_rgo_vm_add = { good = saltpeter } }
-	else_if = { limit = { raw_material = goods:sand } dmsd_rgo_vm_add = { good = sand } }
-	else_if = { limit = { raw_material = goods:silk } dmsd_rgo_vm_add = { good = silk } }
-	else_if = { limit = { raw_material = goods:silver } dmsd_rgo_vm_add = { good = silver } }
-	else_if = { limit = { raw_material = goods:stone } dmsd_rgo_vm_add = { good = stone } }
-	else_if = { limit = { raw_material = goods:sugar } dmsd_rgo_vm_add = { good = sugar } }
-	else_if = { limit = { raw_material = goods:tea } dmsd_rgo_vm_add = { good = tea } }
-	else_if = { limit = { raw_material = goods:tin } dmsd_rgo_vm_add = { good = tin } }
-	else_if = { limit = { raw_material = goods:tobacco } dmsd_rgo_vm_add = { good = tobacco } }
-	else_if = { limit = { raw_material = goods:wheat } dmsd_rgo_vm_add = { good = wheat } }
-	else_if = { limit = { raw_material = goods:wild_game } dmsd_rgo_vm_add = { good = wild_game } }
-	else_if = { limit = { raw_material = goods:wine } dmsd_rgo_vm_add = { good = wine } }
-	else_if = { limit = { raw_material = goods:wool } dmsd_rgo_vm_add = { good = wool } }
+	else_if = { limit = { raw_material = goods:mercury }     dmsd_rgo_vm_add = { good = mercury }     }
+	else_if = { limit = { raw_material = goods:millet }      dmsd_rgo_vm_add = { good = millet }      }
+	else_if = { limit = { raw_material = goods:olives }      dmsd_rgo_vm_add = { good = olives }      }
+	else_if = { limit = { raw_material = goods:pearls }      dmsd_rgo_vm_add = { good = pearls }      }
+	else_if = { limit = { raw_material = goods:pepper }      dmsd_rgo_vm_add = { good = pepper }      }
+	else_if = { limit = { raw_material = goods:potato }      dmsd_rgo_vm_add = { good = potato }      }
+	else_if = { limit = { raw_material = goods:rice }        dmsd_rgo_vm_add = { good = rice }        }
+	else_if = { limit = { raw_material = goods:saffron }     dmsd_rgo_vm_add = { good = saffron }     }
+	else_if = { limit = { raw_material = goods:salt }        dmsd_rgo_vm_add = { good = salt }        }
+	else_if = { limit = { raw_material = goods:saltpeter }   dmsd_rgo_vm_add = { good = saltpeter }   }
+	else_if = { limit = { raw_material = goods:sand }        dmsd_rgo_vm_add = { good = sand }        }
+	else_if = { limit = { raw_material = goods:silk }        dmsd_rgo_vm_add = { good = silk }        }
+	else_if = { limit = { raw_material = goods:silver }      dmsd_rgo_vm_add = { good = silver }      }
+	else_if = { limit = { raw_material = goods:stone }       dmsd_rgo_vm_add = { good = stone }       }
+	else_if = { limit = { raw_material = goods:sugar }       dmsd_rgo_vm_add = { good = sugar }       }
+	else_if = { limit = { raw_material = goods:tea }         dmsd_rgo_vm_add = { good = tea }         }
+	else_if = { limit = { raw_material = goods:tin }         dmsd_rgo_vm_add = { good = tin }         }
+	else_if = { limit = { raw_material = goods:tobacco }     dmsd_rgo_vm_add = { good = tobacco }     }
+	else_if = { limit = { raw_material = goods:wheat }       dmsd_rgo_vm_add = { good = wheat }       }
+	else_if = { limit = { raw_material = goods:wild_game }   dmsd_rgo_vm_add = { good = wild_game }   }
+	else_if = { limit = { raw_material = goods:wine }        dmsd_rgo_vm_add = { good = wine }        }
+	else_if = { limit = { raw_material = goods:wool }        dmsd_rgo_vm_add = { good = wool }        }
 
 	if = { limit = { has_location_modifier = dmsd_rgo_price_penalty } remove_location_modifier = dmsd_rgo_price_penalty }
 	if = { limit = { has_variable = dmsd_rgo_applied } remove_variable = dmsd_rgo_applied }
 	if = { limit = { has_variable = dmsd_rgo_last_price } remove_variable = dmsd_rgo_last_price }
 
+	# Queue for penalty recomputation via anchor's pending list
+	if = {
+		limit = { relative_raw_material_price < 0 has_variable = dmsd_rgo_anchor }
+		save_temporary_scope_as = dmsd_rgo_queued
+		var:dmsd_rgo_anchor = { add_to_variable_list = { name = dmsd_rgo_pending target = scope:dmsd_rgo_queued } }
+	}
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -361,5 +617,11 @@ dmsd_rgo_full_cleanup = {
 		if = { limit = { has_location_modifier = dmsd_rgo_price_penalty } remove_location_modifier = dmsd_rgo_price_penalty }
 		if = { limit = { has_variable = dmsd_rgo_applied } remove_variable = dmsd_rgo_applied }
 		if = { limit = { has_variable = dmsd_rgo_last_price } remove_variable = dmsd_rgo_last_price }
+		if = { limit = { has_variable = dmsd_rgo_anchor } remove_variable = dmsd_rgo_anchor }
+		if = { limit = { has_variable_list = dmsd_rgo_pending } clear_variable_list = dmsd_rgo_pending }
 	}
+
+	if = { limit = { has_global_variable_map = dmsd_rgo_loc_index } clear_global_variable_map = dmsd_rgo_loc_index }
+	if = { limit = { has_global_variable_map = dmsd_rgo_good_anchors } clear_global_variable_map = dmsd_rgo_good_anchors }
+	if = { limit = { has_global_variable = dmsd_rgo_loc_count } remove_global_variable = dmsd_rgo_loc_count }
 }

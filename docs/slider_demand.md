@@ -93,7 +93,7 @@ After all countries have accumulated, every market center:
 3. Applies the demand with unlimited duration: demands persist until explicitly removed, which is what makes the applied-list bookkeeping necessary.
 4. Clears the gold map.
 
-**Swap system:** the engine cannot update an existing temporary demand's scale in place, and a same-month remove and re-add of one type does not take. Each demand type therefore has a reg1/reg2 twin (`dmsd_demand_swap` maps 1 to 2), and a global `dmsd_swap` flag toggles monthly: one month applies the reg1 types and removes reg2, the next month reverses. Both twins share the same weight container.
+**Swap system:** a workaround for a display issue, originally discovered by MEIOU and Taxes, when a temporary demand of the same type is removed and re-added in the same month. Each demand type therefore has a reg1/reg2 twin (`dmsd_demand_swap` maps 1 to 2), and a global `dmsd_swap` flag toggles monthly: one month applies the reg1 types and removes reg2, the next month reverses. Both twins share the same weight container.
 
 **Orphan cleanup:** market center locations are registered in a global `dmsd_active_locations` list during accumulation and Phase 2. After applying, any listed location that is no longer a market center has its demands and maps stripped, and the list is cleared for next month.
 
